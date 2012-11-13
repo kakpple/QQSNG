@@ -108,15 +108,19 @@ public class ConnectingToServer extends Activity {
 			
 			String param = mJSONObject.toString();
 			*/
-			
+			/*
 			ServerAsyncTask mServerAsyncTask = new ServerAsyncTask();
 			
 			mServerAsyncTask.execute(postParams);
+			*/
+			HttpPostAsyncTask mHttpPostAsyncTask = new HttpPostAsyncTask();
+			mHttpPostAsyncTask.execute("55");
 			/*mServerAsyncTask.execute(param); */
 			
 			
 			try{
-				String s = mServerAsyncTask.get();
+				/*String s = mServerAsyncTask.get();*/
+				String s = mHttpPostAsyncTask.get();
 				mTV_log.setText(s);
 			} catch(Exception e){
 				e.printStackTrace();
@@ -138,6 +142,17 @@ public class ConnectingToServer extends Activity {
 			return mHttpClientService.executeHttpPost(params[0]);
 		}	
     }
+    
+    //kakpple test
+    private class HttpPostAsyncTask extends AsyncTask<String , Void, String>{
+		@Override
+		protected String doInBackground(String... params) {
+			// executeHttpPost exception need to be dealt with
+			return HttpUrlService.execStrPost(params[0]);
+		}	
+    }
+    
+    //kakpple test
     
 	@Override
 	protected void onDestroy() {
