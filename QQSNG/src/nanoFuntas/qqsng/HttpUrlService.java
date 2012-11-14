@@ -21,7 +21,7 @@ public class HttpUrlService {
 	private final static int HTTP_CONNECT_TIMEOUT = 30 * 1000; //30 sec
 	private final static int HTTP_READ_TIMEOUT = 30 * 1000; //30 sec
 	
-	private final static String strURL = "http://192.168.219.174:8080/QQSNGServer/QQSNGServlet";
+	private final static String strURL = "http://192.168.2.2:8080/QQSNGServer/QQSNGServlet";
 	
 	public static String execStrPost(String strPram) {
 		
@@ -87,13 +87,16 @@ public class HttpUrlService {
 		return strResult;
 	}
 	
-	public JSONObject execJsonPost(JSONObject jsonParam) throws JSONException{
+	public static JSONObject execJsonPost(JSONObject jsonParam) /* throws JSONException, IOException */{
 		JSONObject jsonResult = null;
 		
-		String strIn = jsonParam.toString();
-		String strOut = execStrPost(strIn);
-		jsonResult = new JSONObject(strOut);
-		
+		try{
+			String strIn = jsonParam.toString();
+			String strOut = execStrPost(strIn);
+			jsonResult = new JSONObject(strOut);
+		} catch(JSONException e){
+			e.printStackTrace();
+		}
 		return jsonResult;
 	}
 }

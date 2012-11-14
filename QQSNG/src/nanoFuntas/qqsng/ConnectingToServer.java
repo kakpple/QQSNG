@@ -94,9 +94,8 @@ public class ConnectingToServer extends Activity {
 			
 			ArrayList<NameValuePair> postParams = new ArrayList<NameValuePair>();
 			postParams.add(new BasicNameValuePair("REQ_TYPE", REQ_TYPE_FETCH_SELF_INFO));
-			postParams.add(new BasicNameValuePair("SELF_ID", selfId));
+			postParams.add(new BasicNameValuePair("SELF_ID", selfId));			
 			
-			/*
 			JSONObject mJSONObject = new JSONObject();
 			try {
 				mJSONObject.put("REQ_TYPE", REQ_TYPE_FETCH_SELF_INFO);
@@ -106,21 +105,23 @@ public class ConnectingToServer extends Activity {
 				e1.printStackTrace();
 			}
 			
-			String param = mJSONObject.toString();
-			*/
+			//String param = mJSONObject.toString();
+			
 			/*
 			ServerAsyncTask mServerAsyncTask = new ServerAsyncTask();
 			
 			mServerAsyncTask.execute(postParams);
 			*/
-			HttpPostAsyncTask mHttpPostAsyncTask = new HttpPostAsyncTask();
-			mHttpPostAsyncTask.execute("55");
+			//HttpPostAsyncTask mHttpPostAsyncTask = new HttpPostAsyncTask();
+			//mHttpPostAsyncTask.execute("55");
 			/*mServerAsyncTask.execute(param); */
 			
-			
+			HttpPostJsonAsyncTask mHttpPostJsonAsyncTask = new HttpPostJsonAsyncTask();
+			mHttpPostJsonAsyncTask.execute(mJSONObject);
 			try{
 				/*String s = mServerAsyncTask.get();*/
-				String s = mHttpPostAsyncTask.get();
+				JSONObject jo = mHttpPostJsonAsyncTask.get();
+				String s = jo.getString("RSP_TYPE");
 				mTV_log.setText(s);
 			} catch(Exception e){
 				e.printStackTrace();
@@ -149,6 +150,14 @@ public class ConnectingToServer extends Activity {
 		protected String doInBackground(String... params) {
 			// executeHttpPost exception need to be dealt with
 			return HttpUrlService.execStrPost(params[0]);
+		}	
+    }
+
+    private class HttpPostJsonAsyncTask extends AsyncTask<JSONObject , Void, JSONObject>{
+		@Override
+		protected JSONObject doInBackground(JSONObject... params) {
+			// executeHttpPost exception need to be dealt with
+			return HttpUrlService.execJsonPost(params[0]);
 		}	
     }
     
