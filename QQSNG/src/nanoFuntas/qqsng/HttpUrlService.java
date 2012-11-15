@@ -5,11 +5,12 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.io.StringWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-import org.json.JSONException;
-import org.json.JSONObject;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 
 import android.util.Log;
 
@@ -87,16 +88,24 @@ public class HttpUrlService {
 		return strResult;
 	}
 	
-	public static JSONObject execJsonPost(JSONObject jsonParam) /* throws JSONException, IOException */{
+	public static JSONObject execJsonPost(JSONObject jsonParam) {
 		JSONObject jsonResult = null;
+		StringWriter sw = null;
+		String strIn = null;
+		String strOut = null;
 		
-		try{
-			String strIn = jsonParam.toString();
-			String strOut = execStrPost(strIn);
-			jsonResult = new JSONObject(strOut);
-		} catch(JSONException e){
+		sw = new StringWriter();
+		try {
+			jsonResult.writeJSONString(sw);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		strIn = jsonParam.toString();
+		strOut = execStrPost(strIn);
+		
+		jsonResult = (JSONObject) JSONValue.parse(strOut);
+		
 		return jsonResult;
 	}
 }

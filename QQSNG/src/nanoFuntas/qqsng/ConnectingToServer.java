@@ -1,10 +1,9 @@
 package nanoFuntas.qqsng;
 
-import java.util.ArrayList;
-import org.apache.http.NameValuePair;
-import org.apache.http.message.BasicNameValuePair;
-import org.json.JSONException;
-import org.json.JSONObject;
+import java.io.IOException;
+import java.io.StringWriter;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 
 import com.tencent.android.sdk.AppInfoConfig;
 import com.tencent.android.sdk.OpenApiSdk;
@@ -92,37 +91,27 @@ public class ConnectingToServer extends Activity {
 			String selfId = p.getId();
 			myId.setText(selfId);
 			
-			ArrayList<NameValuePair> postParams = new ArrayList<NameValuePair>();
-			postParams.add(new BasicNameValuePair("REQ_TYPE", REQ_TYPE_FETCH_SELF_INFO));
-			postParams.add(new BasicNameValuePair("SELF_ID", selfId));			
-			
 			JSONObject mJSONObject = new JSONObject();
+			mJSONObject.put("REQ_TYPE", REQ_TYPE_FETCH_SELF_INFO);
+			mJSONObject.put("SELF_ID", selfId);
+			StringWriter sw = new StringWriter();
 			try {
-				mJSONObject.put("REQ_TYPE", REQ_TYPE_FETCH_SELF_INFO);
-				mJSONObject.put("SELF_ID", selfId);
-			} catch (JSONException e1) {
+				mJSONObject.writeJSONString(sw);
+			} catch (IOException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
+			String ss = sw.toString();
+			String sss = mJSONObject.toString();
 			
-			//String param = mJSONObject.toString();
-			
-			/*
-			ServerAsyncTask mServerAsyncTask = new ServerAsyncTask();
-			
-			mServerAsyncTask.execute(postParams);
-			*/
-			//HttpPostAsyncTask mHttpPostAsyncTask = new HttpPostAsyncTask();
-			//mHttpPostAsyncTask.execute("55");
-			/*mServerAsyncTask.execute(param); */
-			
-			HttpPostJsonAsyncTask mHttpPostJsonAsyncTask = new HttpPostJsonAsyncTask();
-			mHttpPostJsonAsyncTask.execute(mJSONObject);
+			HttpPostAsyncTask mHttpPostAsyncTask = new HttpPostAsyncTask();
+			mHttpPostAsyncTask.execute(sss);
 			try{
-				/*String s = mServerAsyncTask.get();*/
-				JSONObject jo = mHttpPostJsonAsyncTask.get();
-				String s = jo.getString("RSP_TYPE");
+				String jsonStr = mHttpPostAsyncTask.get();
+				JSONObject jo = (JSONObject) JSONValue.parse(jsonStr);
+				String s = (String) jo.get("RSP_TYPE");
 				mTV_log.setText(s);
+				
 			} catch(Exception e){
 				e.printStackTrace();
 			}
@@ -133,15 +122,6 @@ public class ConnectingToServer extends Activity {
 			// TODO Auto-generated method stub
 	        if(DEBUG) Log.d(TAG, "GetSelfSdkHandler onFailure called");
 		}    	
-    }
-
-    private class ServerAsyncTask extends AsyncTask<ArrayList<NameValuePair> , Void, String>{
-		@Override
-		protected String doInBackground(ArrayList<NameValuePair>... params) {
-			HttpClientService mHttpClientService = new HttpClientService();
-			// executeHttpPost exception need to be dealt with
-			return mHttpClientService.executeHttpPost(params[0]);
-		}	
     }
     
     //kakpple test
@@ -160,7 +140,7 @@ public class ConnectingToServer extends Activity {
 			return HttpUrlService.execJsonPost(params[0]);
 		}	
     }
-    
+   
     //kakpple test
     
 	@Override
