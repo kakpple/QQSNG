@@ -1,9 +1,8 @@
 package nanoFuntas.qqsng;
 
-import java.io.IOException;
-import java.io.StringWriter;
+import java.util.concurrent.ExecutionException;
+
 import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
 
 import com.tencent.android.sdk.AppInfoConfig;
 import com.tencent.android.sdk.OpenApiSdk;
@@ -91,30 +90,30 @@ public class ConnectingToServer extends Activity {
 			String selfId = p.getId();
 			myId.setText(selfId);
 			
-			JSONObject mJSONObject = new JSONObject();
-			mJSONObject.put("REQ_TYPE", REQ_TYPE_FETCH_SELF_INFO);
-			mJSONObject.put("SELF_ID", selfId);
-			StringWriter sw = new StringWriter();
-			try {
-				mJSONObject.writeJSONString(sw);
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-			String ss = sw.toString();
-			String sss = mJSONObject.toString();
+			// set JSON parameters
+			JSONObject jsonToSend = new JSONObject();
+			jsonToSend.put("REQ_TYPE", REQ_TYPE_FETCH_SELF_INFO);
+			jsonToSend.put("SELF_ID", selfId);
 			
-			HttpPostAsyncTask mHttpPostAsyncTask = new HttpPostAsyncTask();
-			mHttpPostAsyncTask.execute(sss);
-			try{
-				String jsonStr = mHttpPostAsyncTask.get();
-				JSONObject jo = (JSONObject) JSONValue.parse(jsonStr);
-				String s = (String) jo.get("RSP_TYPE");
-				mTV_log.setText(s);
-				
-			} catch(Exception e){
+			HttpPostJsonAsyncTask mHttpPostJsonAsyncTask = new HttpPostJsonAsyncTask();
+			mHttpPostJsonAsyncTask.execute(jsonToSend);
+			
+			
+			JSONObject jsonRcvd = null;
+			
+			try {
+				jsonRcvd = mHttpPostJsonAsyncTask.get();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (ExecutionException e) {
+				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+			String s = (String) jsonRcvd.get("RSP_TYPE");
+			mTV_log.setText(s);
+				
+			
 		}
 
 		@Override

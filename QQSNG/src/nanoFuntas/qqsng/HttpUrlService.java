@@ -1,3 +1,6 @@
+/*
+ * All copy rights reserved by nanoFuntas studio 2012.
+ */
 package nanoFuntas.qqsng;
 
 import java.io.IOException;
@@ -5,7 +8,6 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.io.StringWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
@@ -14,18 +16,28 @@ import org.json.simple.JSONValue;
 
 import android.util.Log;
 
+/*
+ * HttpUrlService class serves for client to receive or send String or JSON data
+ * between client and server.
+ */
 public class HttpUrlService {
-	
+	// debug info
 	private final static boolean DEBUG = true;
 	private final static String TAG = "HttpUrlService";
+	// HTTP time out parameters
+	private final static int HTTP_CONNECT_TIMEOUT = 30 * 1000; //30 seconds
+	private final static int HTTP_READ_TIMEOUT = 30 * 1000; //30 seconds
+	// URL to servlet
+	private final static String strURL = "http://192.168.219.174:8080/QQSNGServer/QQSNGServlet";
 	
-	private final static int HTTP_CONNECT_TIMEOUT = 30 * 1000; //30 sec
-	private final static int HTTP_READ_TIMEOUT = 30 * 1000; //30 sec
-	
-	private final static String strURL = "http://192.168.2.2:8080/QQSNGServer/QQSNGServlet";
-	
-	public static String execStrPost(String strPram) {
-		
+	/*
+	 * Function execStrPost sends String data received from client to server,
+	 * and fetch String data from server and return it to client.
+	 * 
+	 * @param strParam String data received from client to be sent to server
+	 * @return String data received from server
+	 */
+	public static String execStrPost(String strParam) {		
 		if(DEBUG) Log.i(TAG, "execStrPost");
 		
 		String strResult = null;
@@ -54,7 +66,7 @@ public class HttpUrlService {
 			// write output data to be sent
 			outStrm = mHttpURLConn.getOutputStream();
 			objOutStrm = new ObjectOutputStream(outStrm);
-			objOutStrm.writeObject(strPram);
+			objOutStrm.writeObject(strParam);
 			objOutStrm.flush();
 					
 			// Log HTTP status code for debugging
@@ -88,23 +100,18 @@ public class HttpUrlService {
 		return strResult;
 	}
 	
+	/* 
+	 * Function execJsonPost sends JSON data received from client to server,
+	 * and fetch JSON data from server and return it to client.
+	 * Function execJsonPost wraps function execStrPost 
+	 * 
+	 * @jsonParam JSONObject data received from client to be sent to server
+	 * @return JSONObject data received from server
+	 */
 	public static JSONObject execJsonPost(JSONObject jsonParam) {
-		JSONObject jsonResult = null;
-		StringWriter sw = null;
-		String strIn = null;
-		String strOut = null;
-		
-		sw = new StringWriter();
-		try {
-			jsonResult.writeJSONString(sw);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		strIn = jsonParam.toString();
-		strOut = execStrPost(strIn);
-		
-		jsonResult = (JSONObject) JSONValue.parse(strOut);
+		String strIn = jsonParam.toString();
+		String strOut = execStrPost(strIn);			
+		JSONObject jsonResult = (JSONObject) JSONValue.parse(strOut);
 		
 		return jsonResult;
 	}
