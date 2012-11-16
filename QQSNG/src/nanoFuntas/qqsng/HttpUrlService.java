@@ -28,7 +28,7 @@ public class HttpUrlService {
 	private final static int HTTP_CONNECT_TIMEOUT = 30 * 1000; //30 seconds
 	private final static int HTTP_READ_TIMEOUT = 30 * 1000; //30 seconds
 	// URL to servlet
-	private final static String strURL = "http://192.168.219.174:8080/QQSNGServer/QQSNGServlet";
+	private final static String strURL = "http://192.168.2.2:8080/QQSNGServer/QQSNGServlet";
 	
 	/*
 	 * Function execStrPost sends String data received from client to server,
