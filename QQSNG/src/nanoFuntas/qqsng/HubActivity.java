@@ -40,13 +40,15 @@ public class HubActivity extends Activity {
         Long mScore = null;
         Long mGold = null;
         
+        mId= (String) jo.get("SELF_ID");
 		mHeart = (Long) jo.get("HEART");
 		mScore = (Long) jo.get("SCORE");
 		mGold = (Long) jo.get("GOLD");
         
-        tv2.setText(Long.toString(mHeart));
-        tv3.setText(Long.toString(mScore));
-        tv4.setText(Long.toString(mGold));
+		tv2.setText(mId);
+        tv3.setText(Long.toString(mHeart));
+        tv4.setText(Long.toString(mScore));
+        tv5.setText(Long.toString(mGold));
     }
 
     @Override
