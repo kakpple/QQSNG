@@ -34,21 +34,24 @@ public class HubActivity extends Activity {
         
         String strJson = i.getStringExtra("JSON");
         JSONObject jo =  (JSONObject) JSONValue.parse(strJson);
+
+        JSONObject jsonFriend = (JSONObject) jo.get(Integer.toString(1));
         
         String mId = null;
         Long mHeart = null;
         Long mScore = null;
         Long mGold = null;
         
-        mId= (String) jo.get("SELF_ID");
-		mHeart = (Long) jo.get("HEART");
-		mScore = (Long) jo.get("SCORE");
-		mGold = (Long) jo.get("GOLD");
+        mId= (String) jsonFriend.get("FRIEND_ID");
+		mHeart = (Long) jsonFriend.get("HEART");
+		mScore = (Long) jsonFriend.get("SCORE");
+		mGold = (Long) jsonFriend.get("GOLD");
         
 		tv2.setText(mId);
         tv3.setText(Long.toString(mHeart));
         tv4.setText(Long.toString(mScore));
         tv5.setText(Long.toString(mGold));
+
     }
 
     @Override
