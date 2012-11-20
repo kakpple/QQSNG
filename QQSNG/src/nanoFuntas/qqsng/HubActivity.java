@@ -6,11 +6,14 @@ import org.json.simple.JSONValue;
 import android.os.Bundle;
 import android.app.Activity;
 import android.content.Intent;
+import android.util.Log;
 import android.view.Menu;
 import android.widget.TextView;
 
 public class HubActivity extends Activity {
-
+	private final boolean DEBUG = true;
+	private final String TAG = "HubActivity";
+	
 	// kakpple test TextViews
 	TextView tv1 = null;
 	TextView tv2 = null;
@@ -20,7 +23,9 @@ public class HubActivity extends Activity {
 	
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    	if(DEBUG) Log.i(TAG, "HubActivity onCreate()");
+    	
+    	super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_hub);
         
         // kakpple test TextViews
@@ -32,9 +37,16 @@ public class HubActivity extends Activity {
         
         Intent i = getIntent();
         
-        String strJson = i.getStringExtra("JSON");
+        String strJson = i.getStringExtra("JSON_FRIENDS_INFO");
+        
+        tv2.setText(strJson);
+        // test log
+        Log.i(TAG, strJson);
+        
+        JSONObject j = null;
+        /*
         JSONObject jo =  (JSONObject) JSONValue.parse(strJson);
-
+        
         JSONObject jsonFriend = (JSONObject) jo.get(Integer.toString(1));
         
         String mId = null;
@@ -51,7 +63,7 @@ public class HubActivity extends Activity {
         tv3.setText(Long.toString(mHeart));
         tv4.setText(Long.toString(mScore));
         tv5.setText(Long.toString(mGold));
-
+*/   
     }
 
     @Override

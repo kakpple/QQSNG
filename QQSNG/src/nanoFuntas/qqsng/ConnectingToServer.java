@@ -21,8 +21,12 @@ import android.app.Activity;
 import android.content.Intent;
 import android.util.Log;
 import android.view.Menu;
-import android.widget.TextView;
 
+/**
+ * This ConnectingToServer activity gets self ID and Friends ID from QQ server 
+ * and send self and friends id to game server and gets self and friends info as JSON,
+ * and finally sends this JSON data to HubActivity
+ */
 public class ConnectingToServer extends Activity {
 	// debugging info
 	private final boolean DEBUG = true;
@@ -36,6 +40,8 @@ public class ConnectingToServer extends Activity {
 	private final String FRIEND_ID = "FRIEND_ID";	
 	private final String RSP_TYPE = "RSP_TYPE";
 	
+	private Intent intentToHubActivity = null;
+	
 	private int loginType = CommConfig.LOGIN_FROM_MSF;
 
 	@Override
@@ -44,6 +50,7 @@ public class ConnectingToServer extends Activity {
     	
     	super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_connecting_to_server);
+        intentToHubActivity = new Intent(ConnectingToServer.this, HubActivity.class);
         
         // login to QQ server
         OpenApiSdk.setmContext(this);
@@ -52,7 +59,7 @@ public class ConnectingToServer extends Activity {
     }
 
     private class LoginSdkHandler implements SdkHandler{
-    	// Login success 
+    	// Login QQ success 
 		@Override
 		public void onSuccess(String rspContent, int statusCode) {
 	        if(DEBUG) Log.d(TAG, "LoginSdkHandler onSuccess called");
@@ -90,11 +97,13 @@ public class ConnectingToServer extends Activity {
 		}
     }
     
+	/**
+	 * 个人资料获取接口调用结果处理类
+	 */   
     private class GetSelfSdkHandler implements SdkHandler{
 
 		@Override
 		public void onSuccess(String rspContent, int statusCode) {
-			// TODO Auto-generated method stub
 	        if(DEBUG) Log.d(TAG, "GetSelfSdkHandler onSuccess called");
 	        
 	        // get self ID
@@ -106,7 +115,7 @@ public class ConnectingToServer extends Activity {
 			jsonSelfId.put(REQ_TYPE, REQ_SELF_INFO);
 			jsonSelfId.put(SELF_ID, selfId);
 			
-			// Post json to server and receive one from server
+			// Post JSON to server and receive self info response from server
 			HttpPostJsonAsyncTask mHttpPostJsonAsyncTask = new HttpPostJsonAsyncTask();
 			mHttpPostJsonAsyncTask.execute(jsonSelfId);				
 			
@@ -114,20 +123,13 @@ public class ConnectingToServer extends Activity {
 			try {
 				jsonSelfInfo = mHttpPostJsonAsyncTask.get();
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (ExecutionException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			
-			/*
-			Intent i = new Intent(ConnectingToServer.this, HubActivity.class);
-			i.putExtra("JSON", jsonSelfInfo.toString());
-			startActivity(i);
-			
-			finish();
-			*/
+			// put JSON self info get from server to intentToHubActivity intent as data
+			intentToHubActivity.putExtra("JSON_SELF_INFO", jsonSelfInfo.toString());			
 		}
 
 		@Override
@@ -137,15 +139,15 @@ public class ConnectingToServer extends Activity {
 		}    	
     }
     
-	/**好友关系链获取接口调用结果处理类
-	 *
+	/**
+	 * 好友关系链获取接口调用结果处理类
 	 */
-	class GetFriendsSdkHandler implements SdkHandler
-	{	
-		public GetFriendsSdkHandler(){
-		}
+	class GetFriendsSdkHandler implements SdkHandler{	
 		
+		@Override
 		public void onSuccess(String rspContent , int statusCode){			
+	        if(DEBUG) Log.d(TAG, "GetFriendsSdkHandler onSuccess called");
+			
 			JSONObject jsonFriendsId = new JSONObject();
 			jsonFriendsId.put(REQ_TYPE, REQ_FRIENDS_INFO);
 
@@ -156,7 +158,6 @@ public class ConnectingToServer extends Activity {
 				int i = 1;
 				for (Person p: fList.getFriendList() ){
 					friendId = p.getId();
-					if(DEBUG) Log.i(TAG, friendId);
 					jsonFriendsId.put(Integer.toString(i), friendId);
 					i++;
 				}
@@ -174,17 +175,14 @@ public class ConnectingToServer extends Activity {
 			try {
 				jsonFriendsInfo = mHttpPostJsonAsyncTask.get();
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-							e.printStackTrace();
+				e.printStackTrace();
 			} catch (ExecutionException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			
-			Intent i = new Intent(ConnectingToServer.this, HubActivity.class);
-			i.putExtra("JSON", jsonFriendsInfo.toString());
-			startActivity(i);
-			
+			// put JSON friends info get from server to intentToHubActivity intent as data
+			intentToHubActivity.putExtra("JSON_FRIENDS_INFO", jsonFriendsInfo.toString());
+			startActivity(intentToHubActivity);
 			finish();
 			
 		}
@@ -196,8 +194,8 @@ public class ConnectingToServer extends Activity {
 		}
 	}
     
-    //kakpple test
-    private class HttpPostAsyncTask extends AsyncTask<String , Void, String>{
+    // 
+    private class HttpPostStrAsyncTask extends AsyncTask<String , Void, String>{
 		@Override
 		protected String doInBackground(String... params) {
 			// executeHttpPost exception need to be dealt with
@@ -205,6 +203,9 @@ public class ConnectingToServer extends Activity {
 		}	
     }
 
+    /**
+     * This HttpPostJsonAsyncTask class sends JSON and gets JSON data to and from server using HttpUrlService class
+     */
     private class HttpPostJsonAsyncTask extends AsyncTask<JSONObject , Void, JSONObject>{
 		@Override
 		protected JSONObject doInBackground(JSONObject... params) {
@@ -212,7 +213,7 @@ public class ConnectingToServer extends Activity {
 			return HttpUrlService.execJsonPost(params[0]);
 		}	
     }
-       
+    
 	@Override
 	protected void onDestroy() {
 		// TODO Auto-generated method stub
