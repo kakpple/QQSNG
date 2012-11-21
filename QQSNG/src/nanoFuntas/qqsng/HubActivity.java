@@ -20,6 +20,18 @@ public class HubActivity extends Activity {
 	TextView tv3 = null;
 	TextView tv4 = null;
 	TextView tv5 = null;
+	TextView tv6 = null;
+	TextView tv7 = null;
+	TextView tv8 = null;
+	TextView tv9 = null;
+	TextView tv10 = null;
+	
+	// kakpple test Strings
+    String mId = null;
+    Long mHeart = null;
+    Long mScore = null;
+    Long mGold = null;
+
 	
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -34,36 +46,43 @@ public class HubActivity extends Activity {
         tv3 = (TextView) findViewById(R.id.textView3);
         tv4 = (TextView) findViewById(R.id.textView4);
         tv5 = (TextView) findViewById(R.id.textView5);
+        tv6 = (TextView) findViewById(R.id.textView6);
+        tv7 = (TextView) findViewById(R.id.textView7);
+        tv8 = (TextView) findViewById(R.id.textView8);
+        tv9 = (TextView) findViewById(R.id.textView9);
+        tv10 = (TextView) findViewById(R.id.textView10);
         
         Intent i = getIntent();
         
-        String strJson = i.getStringExtra("JSON_FRIENDS_INFO");
+        // show self info
+        String strJsonSelf = i.getStringExtra("JSON_SELF_INFO");
+        JSONObject jsonSelf = (JSONObject) JSONValue.parse(strJsonSelf);
         
-        tv2.setText(strJson);
-        // test log
-        Log.i(TAG, strJson);
+        mId= (String) jsonSelf.get("SELF_ID");
+		mHeart = (Long) jsonSelf.get("HEART");
+		mScore = (Long) jsonSelf.get("SCORE");
+		mGold = (Long) jsonSelf.get("GOLD");
         
-        JSONObject j = null;
-        /*
-        JSONObject jo =  (JSONObject) JSONValue.parse(strJson);
+		tv2.setText(mId);
+        tv3.setText(Long.toString(mHeart));
+        tv4.setText(Long.toString(mScore));
+        tv5.setText(Long.toString(mGold));        
         
-        JSONObject jsonFriend = (JSONObject) jo.get(Integer.toString(1));
-        
-        String mId = null;
-        Long mHeart = null;
-        Long mScore = null;
-        Long mGold = null;
-        
+        // show friend info
+        String strJsonFriend = i.getStringExtra("JSON_FRIENDS_INFO");
+        JSONObject joFriend =  (JSONObject) JSONValue.parse(strJsonFriend);        
+        JSONObject jsonFriend = (JSONObject) joFriend.get(Integer.toString(4));
+                
         mId= (String) jsonFriend.get("FRIEND_ID");
 		mHeart = (Long) jsonFriend.get("HEART");
 		mScore = (Long) jsonFriend.get("SCORE");
 		mGold = (Long) jsonFriend.get("GOLD");
         
-		tv2.setText(mId);
-        tv3.setText(Long.toString(mHeart));
-        tv4.setText(Long.toString(mScore));
-        tv5.setText(Long.toString(mGold));
-*/   
+		tv7.setText(mId);
+        tv8.setText(Long.toString(mHeart));
+        tv9.setText(Long.toString(mScore));
+        tv10.setText(Long.toString(mGold));
+
     }
 
     @Override
