@@ -1,7 +1,5 @@
 package nanoFuntas.qqsng;
 
-import java.util.concurrent.ExecutionException;
-
 import org.json.simple.JSONObject;
 
 import com.tencent.android.sdk.AppInfoConfig;
@@ -15,7 +13,6 @@ import com.tencent.android.sdk.common.CommConfig;
 import com.tencent.android.sdk.common.CommonUtil;
 import com.tencent.sdk.snsjar.Sdk2OpenSns;
 
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Activity;
 import android.content.Intent;
@@ -32,18 +29,9 @@ public class ConnectingToServer extends Activity {
 	private final boolean DEBUG = true;
 	private final String TAG = "ConnectingToServer";
 	
-	// token
-	private final String REQ_TYPE = "REQ_TYPE";
-	private final String REQ_SELF_INFO = "REQ_SELF_INFO";
-	private final String REQ_FRIENDS_INFO = "REQ_FRIENDS_INFO";
-	private final String SELF_ID = "SELF_ID";	
-	private final String FRIEND_ID = "FRIEND_ID";	
-	private final String RSP_TYPE = "RSP_TYPE";
+	private int loginType = CommConfig.LOGIN_FROM_MSF;
 	
 	private Intent intentToHubActivity = null;
-	
-	private int loginType = CommConfig.LOGIN_FROM_MSF;
-
 	@Override
     public void onCreate(Bundle savedInstanceState) {
         if(DEBUG) Log.d(TAG, "onCreate called");
@@ -59,7 +47,6 @@ public class ConnectingToServer extends Activity {
     }
 
     private class LoginSdkHandler implements SdkHandler{
-    	// Login QQ success 
 		@Override
 		public void onSuccess(String rspContent, int statusCode) {
 	        if(DEBUG) Log.d(TAG, "LoginSdkHandler onSuccess called");
@@ -78,7 +65,7 @@ public class ConnectingToServer extends Activity {
 			
 			// get friends info from QQ server
 			Integer start = 0;
-			Integer count = 5;//请注意最大20	
+			Integer count = 10;//请注意最大20	
 			String ids = "301BB0F1B1204D93A801859A006460D1,606C16BADF574E34BA5051989081FA5E,8BC9A0B9FC9B06F8ACC7C7AFE736E271";				
 						
 			try{	
@@ -105,32 +92,22 @@ public class ConnectingToServer extends Activity {
 		@Override
 		public void onSuccess(String rspContent, int statusCode) {
 	        if(DEBUG) Log.d(TAG, "GetSelfSdkHandler onSuccess called");
+	        String selfId = null;
 	        
 	        // get self ID
-			Person p = Person.fromJsonString(rspContent);	
-			String selfId = p.getId();
-			
-			// set JSON parameters
-			JSONObject jsonSelfId = new JSONObject();
-			jsonSelfId.put(REQ_TYPE, REQ_SELF_INFO);
-			jsonSelfId.put(SELF_ID, selfId);
-			
-			// Post JSON to server and receive self info response from server
-			HttpPostJsonAsyncTask mHttpPostJsonAsyncTask = new HttpPostJsonAsyncTask();
-			mHttpPostJsonAsyncTask.execute(jsonSelfId);				
-			
-			JSONObject jsonSelfInfo = null;	
-			try {
-				jsonSelfInfo = mHttpPostJsonAsyncTask.get();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			} catch (ExecutionException e) {
-				e.printStackTrace();
+			try{
+				Person p = Person.fromJsonString(rspContent);	
+				selfId = p.getId();			
+			} catch (Exception e) {
+				CommonUtil.showAlertDialog(ConnectingToServer.this, "个人信息接口", "接口调用失败,错误信息:" + e.getMessage(),
+						"确定", null, null, null, null);
 			}
+			// kakpple tests
+			JSONObject jsonSelfInfo = ServerIface.getSelfInfo(selfId);
 			
 			// put JSON self info get from server to intentToHubActivity intent as data
 			intentToHubActivity.putExtra("JSON_SELF_INFO", jsonSelfInfo.toString());			
-		}
+		}		
 
 		@Override
 		public void onFailure(SdkCallException exp) {
@@ -147,44 +124,30 @@ public class ConnectingToServer extends Activity {
 		@Override
 		public void onSuccess(String rspContent , int statusCode){			
 	        if(DEBUG) Log.d(TAG, "GetFriendsSdkHandler onSuccess called");
+	        
+			String[] friendId = null;
 			
-			JSONObject jsonFriendsId = new JSONObject();
-			jsonFriendsId.put(REQ_TYPE, REQ_FRIENDS_INFO);
-
 			try {
 				FriendList fList = FriendList.fromJsonString(rspContent);	
-				String friendId = null;
+				int NumOfFriends = fList.getFriendList().size();
+				friendId = new String[NumOfFriends + 1];
 				
 				int i = 1;
-				for (Person p: fList.getFriendList() ){
-					friendId = p.getId();
-					jsonFriendsId.put(Integer.toString(i), friendId);
+				for ( Person p: fList.getFriendList()){
+					friendId[i] = p.getId();
 					i++;
 				}
-			}			
-			catch (Exception e) {
-				CommonUtil.showAlertDialog(ConnectingToServer.this, "微博标识接口", "接口调用失败,错误信息:" + e.getMessage(),
+			} catch (Exception e) {
+				CommonUtil.showAlertDialog(ConnectingToServer.this, "朋友信息接口", "接口调用失败,错误信息:" + e.getMessage(),
 						"确定", null, null, null, null);
-			}	
-			
-			// Post json to server and receive one from server
-			HttpPostJsonAsyncTask mHttpPostJsonAsyncTask = new HttpPostJsonAsyncTask();
-			mHttpPostJsonAsyncTask.execute(jsonFriendsId);				
-						
-			JSONObject jsonFriendsInfo = null;	
-			try {
-				jsonFriendsInfo = mHttpPostJsonAsyncTask.get();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			} catch (ExecutionException e) {
-				e.printStackTrace();
 			}
+						
+			JSONObject jsonFriendsInfo = ServerIface.getFriendsInfo(friendId);
 			
 			// put JSON friends info get from server to intentToHubActivity intent as data
 			intentToHubActivity.putExtra("JSON_FRIENDS_INFO", jsonFriendsInfo.toString());
 			startActivity(intentToHubActivity);
 			finish();
-			
 		}
 		
 		public void onFailure(SdkCallException e){
@@ -193,28 +156,8 @@ public class ConnectingToServer extends Activity {
 					"确定", null, null, null, null);
 		}
 	}
-    
-    // 
-    private class HttpPostStrAsyncTask extends AsyncTask<String , Void, String>{
-		@Override
-		protected String doInBackground(String... params) {
-			// executeHttpPost exception need to be dealt with
-			return HttpUrlService.execStrPost(params[0]);
-		}	
-    }
-
-    /**
-     * This HttpPostJsonAsyncTask class sends JSON and gets JSON data to and from server using HttpUrlService class
-     */
-    private class HttpPostJsonAsyncTask extends AsyncTask<JSONObject , Void, JSONObject>{
-		@Override
-		protected JSONObject doInBackground(JSONObject... params) {
-			// executeHttpPost exception need to be dealt with
-			return HttpUrlService.execJsonPost(params[0]);
-		}	
-    }
-    
-	@Override
+	
+ 	@Override
 	protected void onDestroy() {
 		// TODO Auto-generated method stub
         if(DEBUG) Log.d(TAG, "onDestroy called");
