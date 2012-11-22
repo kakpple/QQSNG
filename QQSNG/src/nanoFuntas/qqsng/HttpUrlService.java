@@ -1,4 +1,4 @@
-/*
+/**
  * All copy rights reserved by nanoFuntas studio 2012.
  */
 package nanoFuntas.qqsng;
@@ -16,7 +16,7 @@ import org.json.simple.JSONValue;
 
 import android.util.Log;
 
-/*
+/**
  * HttpUrlService class serves for client to receive or send String or JSON data
  * between client and server.
  */
@@ -28,9 +28,9 @@ public class HttpUrlService {
 	private final static int HTTP_CONNECT_TIMEOUT = 30 * 1000; //30 seconds
 	private final static int HTTP_READ_TIMEOUT = 30 * 1000; //30 seconds
 	// URL to servlet
-	private final static String strURL = "http://192.168.219.174:8080/QQSNGServer/QQSNGServlet";
+	private final static String strURL = "http://192.168.2.2:8080/QQSNGServer/QQSNGServlet";
 	
-	/*
+	/**
 	 * Function execStrPost sends String data received from client to server,
 	 * and fetch String data from server and return it to client.
 	 * 
@@ -100,7 +100,7 @@ public class HttpUrlService {
 		return strResult;
 	}
 	
-	/* 
+	/** 
 	 * Function execJsonPost sends JSON data received from client to server,
 	 * and fetch JSON data from server and return it to client.
 	 * Function execJsonPost wraps function execStrPost 

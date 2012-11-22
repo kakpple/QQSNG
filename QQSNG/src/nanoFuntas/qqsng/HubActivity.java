@@ -8,6 +8,9 @@ import android.app.Activity;
 import android.content.Intent;
 import android.util.Log;
 import android.view.Menu;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
 import android.widget.TextView;
 
 public class HubActivity extends Activity {
@@ -25,6 +28,7 @@ public class HubActivity extends Activity {
 	TextView tv8 = null;
 	TextView tv9 = null;
 	TextView tv10 = null;
+	Button bt = null;
 	
 	// kakpple test Strings
     String mId = null;
@@ -51,8 +55,18 @@ public class HubActivity extends Activity {
         tv8 = (TextView) findViewById(R.id.textView8);
         tv9 = (TextView) findViewById(R.id.textView9);
         tv10 = (TextView) findViewById(R.id.textView10);
-        
+        bt = (Button) findViewById(R.id.button1);
         Intent i = getIntent();
+        
+        bt.setOnClickListener(new OnClickListener(){
+
+			@Override
+			public void onClick(View v) {
+				// TODO Auto-generated method stub
+				
+			}
+        	
+        });
         
         // show self info
         String strJsonSelf = i.getStringExtra("JSON_SELF_INFO");
