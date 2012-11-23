@@ -59,13 +59,11 @@ public class HubActivity extends Activity {
         Intent i = getIntent();
         
         bt.setOnClickListener(new OnClickListener(){
-
 			@Override
 			public void onClick(View v) {
-				// TODO Auto-generated method stub
-				
-			}
-        	
+				Intent i = new Intent(HubActivity.this, Game.class);
+				startActivity(i);
+			}      	
         });
         
         // show self info

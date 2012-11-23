@@ -17,8 +17,10 @@ public class ServerIface {
 	private static final String REQ_TYPE = "REQ_TYPE";
 	private static final String REQ_SELF_INFO = "REQ_SELF_INFO";
 	private static final String REQ_FRIENDS_INFO = "REQ_FRIENDS_INFO";
+	private static final String REQ_SCORE_UPDATE = "REQ_SCORE_UPDATE"; 
 	private static final String SELF_ID = "SELF_ID";	
-	private static final String FRIEND_ID = "FRIEND_ID";	
+	private static final String SCORE = "SCORE";
+	
 	private static final String RSP_TYPE = "RSP_TYPE";
 	
 	/**
@@ -32,8 +34,8 @@ public class ServerIface {
 		
 		// set JSON parameters
 		JSONObject jsonSelfId = new JSONObject();
-		jsonSelfId.put(REQ_TYPE, REQ_SELF_INFO);
-		jsonSelfId.put(SELF_ID, selfId);
+		jsonSelfId.put(ServerIface.REQ_TYPE, ServerIface.REQ_SELF_INFO);
+		jsonSelfId.put(ServerIface.SELF_ID, selfId);
 		
 		// Post JSON to server and receive self info response from server
 		HttpPostJsonAsyncTask mHttpPostJsonAsyncTask = new HttpPostJsonAsyncTask();
@@ -61,7 +63,7 @@ public class ServerIface {
 		if(DEBUG) Log.i(TAG, "getFriendsInfo()");
 		
 		JSONObject jsonFriendsId = new JSONObject();
-		jsonFriendsId.put(REQ_TYPE, REQ_FRIENDS_INFO);
+		jsonFriendsId.put(ServerIface.REQ_TYPE, ServerIface.REQ_FRIENDS_INFO);
         
 		int NumOfFriends = friendId.length -1;
 		for(int i = 1; i <= NumOfFriends; i++){
@@ -81,6 +83,31 @@ public class ServerIface {
 			e.printStackTrace();
 		}
 		return jsonFriendsInfo;
+	}
+
+	/**
+     * This updateScore function updates score to server 
+     * and retrieves status code implying transaction success or failure
+     */
+	public static JSONObject updateScore(double score){
+		if(DEBUG) Log.i(TAG, "updateScore()");
+		
+		JSONObject jsonScoreUpdate = new JSONObject();
+		jsonScoreUpdate.put(ServerIface.REQ_TYPE, ServerIface.REQ_SCORE_UPDATE);
+		jsonScoreUpdate.put(ServerIface.SCORE, score);
+		
+		HttpPostJsonAsyncTask mHttpPostJsonAsyncTask = new HttpPostJsonAsyncTask();
+		mHttpPostJsonAsyncTask.execute(jsonScoreUpdate);	
+		
+		JSONObject jsonStatCode = null;	
+		try {
+			jsonStatCode = mHttpPostJsonAsyncTask.get();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		} catch (ExecutionException e) {
+			e.printStackTrace();
+		}
+		return jsonStatCode;
 	}
 	
 	/**
