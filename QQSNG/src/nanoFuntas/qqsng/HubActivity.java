@@ -68,6 +68,8 @@ public class HubActivity extends Activity {
         
         // show self info
         String strJsonSelf = i.getStringExtra("JSON_SELF_INFO");
+    	if(DEBUG) Log.i(TAG, "strJsonFriend = " + strJsonSelf);
+
         JSONObject jsonSelf = (JSONObject) JSONValue.parse(strJsonSelf);
         
         mId= (String) jsonSelf.get("SELF_ID");
@@ -81,10 +83,13 @@ public class HubActivity extends Activity {
         tv5.setText(Long.toString(mGold));        
         
         // show friend info
+        int friendNumber = 1;
         String strJsonFriend = i.getStringExtra("JSON_FRIENDS_INFO");
         JSONObject joFriend =  (JSONObject) JSONValue.parse(strJsonFriend);        
-        JSONObject jsonFriend = (JSONObject) joFriend.get(Integer.toString(4));
-                
+        JSONObject jsonFriend = (JSONObject) joFriend.get(Integer.toString(friendNumber));
+
+    	if(DEBUG) Log.i(TAG, "strJsonFriend = " + strJsonFriend);
+        
         mId= (String) jsonFriend.get("FRIEND_ID");
 		mHeart = (Long) jsonFriend.get("HEART");
 		mScore = (Long) jsonFriend.get("SCORE");
@@ -94,7 +99,6 @@ public class HubActivity extends Activity {
         tv8.setText(Long.toString(mHeart));
         tv9.setText(Long.toString(mScore));
         tv10.setText(Long.toString(mGold));
-
     }
 
     @Override

@@ -1,6 +1,9 @@
 package nanoFuntas.qqsng;
 
+import java.util.ArrayList;
+
 import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 
 import com.tencent.android.sdk.AppInfoConfig;
 import com.tencent.android.sdk.FriendList;
@@ -32,13 +35,17 @@ public class ConnectingToServer extends Activity {
 	private int loginType = CommConfig.LOGIN_FROM_MSF;
 	
 	private Intent intentToHubActivity = null;
+	private ArrayList<PhotoTextItem> gamerList = new ArrayList<PhotoTextItem>();
+	
 	@Override
     public void onCreate(Bundle savedInstanceState) {
         if(DEBUG) Log.d(TAG, "onCreate called");
     	
     	super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_connecting_to_server);
-        intentToHubActivity = new Intent(ConnectingToServer.this, HubActivity.class);
+        // kakpple test
+        intentToHubActivity = new Intent(ConnectingToServer.this, MainActivity.class);
+        
         
         // login to QQ server
         OpenApiSdk.setmContext(this);
@@ -93,17 +100,29 @@ public class ConnectingToServer extends Activity {
 		public void onSuccess(String rspContent, int statusCode) {
 	        if(DEBUG) Log.d(TAG, "GetSelfSdkHandler onSuccess called");
 	        String selfId = null;
-	        
+	        String selfName = null;
 	        // get self ID
 			try{
 				Person p = Person.fromJsonString(rspContent);	
-				selfId = p.getId();			
+				selfId = p.getId();
+				selfName = p.getDisplayName();
+				
 			} catch (Exception e) {
 				CommonUtil.showAlertDialog(ConnectingToServer.this, "个人信息接口", "接口调用失败,错误信息:" + e.getMessage(),
 						"确定", null, null, null, null);
 			}
-			// kakpple tests
+
 			JSONObject jsonSelfInfo = ServerIface.getSelfInfo(selfId);
+			
+			// kakpple_test
+			Log.d("kakpple_test", jsonSelfInfo.toString()); 
+			PhotoTextItem gamerSelf = new PhotoTextItem();
+			
+			gamerSelf.setName(selfName);
+			Long score = (Long) jsonSelfInfo.get("SCORE");
+			gamerSelf.setScore(score.toString());
+			
+			gamerList.add(gamerSelf);
 			
 			// put JSON self info get from server to intentToHubActivity intent as data
 			intentToHubActivity.putExtra("JSON_SELF_INFO", jsonSelfInfo.toString());			
@@ -126,15 +145,19 @@ public class ConnectingToServer extends Activity {
 	        if(DEBUG) Log.d(TAG, "GetFriendsSdkHandler onSuccess called");
 	        
 			String[] friendId = null;
+			String[] friendName = null;
+			int numOfFriends = -1;
 			
 			try {
 				FriendList fList = FriendList.fromJsonString(rspContent);	
-				int NumOfFriends = fList.getFriendList().size();
-				friendId = new String[NumOfFriends + 1];
+				numOfFriends = fList.getFriendList().size();
+				friendId = new String[numOfFriends + 1];
+				friendName = new String[numOfFriends + 1];
 				
 				int i = 1;
 				for ( Person p: fList.getFriendList()){
 					friendId[i] = p.getId();
+					friendName[i] = p.getDisplayName();
 					i++;
 				}
 			} catch (Exception e) {
@@ -145,7 +168,31 @@ public class ConnectingToServer extends Activity {
 			JSONObject jsonFriendsInfo = ServerIface.getFriendsInfo(friendId);
 			
 			// put JSON friends info get from server to intentToHubActivity intent as data
-			intentToHubActivity.putExtra("JSON_FRIENDS_INFO", jsonFriendsInfo.toString());
+			//intentToHubActivity.putExtra("JSON_FRIENDS_INFO", jsonFriendsInfo.toString());
+			
+			// kakpple_test
+			Log.d("kakpple_test", jsonFriendsInfo.toString()); 			
+			
+			PhotoTextItem gamerFriend = new PhotoTextItem();
+			for(int i = 1; i < numOfFriends + 1; i++){
+				JSONObject jsonFriend = (JSONObject) jsonFriendsInfo.get(Integer.toString(i));
+				Long score = (Long) jsonFriend.get("SCORE");
+
+				gamerFriend.setName(friendName[i]);
+				gamerFriend.setScore(score.toString());
+				
+				gamerList.add(gamerFriend);
+				
+				Log.d("kakpple_test", "numOfFirneds = " + numOfFriends);
+				Log.d("kakpple_test", "NAME = " + friendName[i]);
+				Log.d("kakpple_test", "SCORE = " + score);
+				
+			}
+			
+			Bundle bundle = new Bundle();
+			bundle.putParcelableArrayList("gamerList", gamerList);
+			intentToHubActivity.putExtras(bundle);
+			
 			startActivity(intentToHubActivity);
 			finish();
 		}
