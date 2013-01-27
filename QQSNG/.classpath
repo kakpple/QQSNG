@@ -4,6 +4,5 @@
 	<classpathentry kind="src" path="gen"/>
 	<classpathentry kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK"/>
 	<classpathentry kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
-	<classpathentry exported="true" kind="lib" path="/Users/oyeongsu/Downloads/QQGameAndroidSdkAndDoc_20121025_v2.0.6/Tencent_SNS_Sdk/bin/tencent_sns_sdk.jar" sourcepath="/Tencent_SNS_Sdk/src"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>
