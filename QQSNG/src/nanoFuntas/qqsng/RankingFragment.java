@@ -12,38 +12,35 @@ import android.view.ViewGroup;
 import android.widget.ListView;
 
 public class RankingFragment extends Fragment {
-    
+	private final static boolean DEBUG = true;
+	private final static String TAG = "RankingFragment";
+	
 	private ListView mListView = null;
 	
 	@Override
     public void onStart(){
-    	super.onStart();
+    	if(DEBUG) Log.d(TAG, "onStart()");
+		
+		super.onStart();
     	mListView = (ListView) getView().findViewById(R.id.listView1);
 
-    	ArrayList<PhotoTextItem> mItemList = getListView();
+        Bundle bundle = getArguments();       
+        ArrayList<PhotoTextItem> mItemList = bundle.getParcelableArrayList("gamerList");
+      	// ArrayList<PhotoTextItem> mItemList = getListView();
+  
     	PhotoTextListAdapter mPhotoTextListAdapter = new PhotoTextListAdapter(getActivity(), mItemList);
         mListView.setAdapter(mPhotoTextListAdapter);
-        
-        // kakpple_test 
-        Bundle bundle = getArguments();
-        
-        ArrayList<PhotoTextItem> mPhotoTextItem;
-        mPhotoTextItem = bundle.getParcelableArrayList("gamerList");
-        
-        String name = mPhotoTextItem.get(0).getName();
-        
+                        
         //String s = bundle.getString("JSON_FRIENDS_INFO");
-        Log.d("kakpple_test", name);
 	}
 	
 	@Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
-    	         	
-    	View view = inflater.inflate(R.layout.ranking_fragment, container, false);
-    	
-    	return view;
-    }
+    	if(DEBUG) Log.d(TAG, "onCreateView()");
+		
+    	return inflater.inflate(R.layout.ranking_fragment, container, false);
+	}
     
     private ArrayList<PhotoTextItem> getListView(){
     	ArrayList<PhotoTextItem> itemList = new ArrayList<PhotoTextItem>();

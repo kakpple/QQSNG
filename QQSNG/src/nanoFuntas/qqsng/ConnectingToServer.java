@@ -3,7 +3,6 @@ package nanoFuntas.qqsng;
 import java.util.ArrayList;
 
 import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
 
 import com.tencent.android.sdk.AppInfoConfig;
 import com.tencent.android.sdk.FriendList;
@@ -74,7 +73,7 @@ public class ConnectingToServer extends Activity {
 			Integer start = 0;
 			Integer count = 10;//请注意最大20	
 			String ids = "301BB0F1B1204D93A801859A006460D1,606C16BADF574E34BA5051989081FA5E,8BC9A0B9FC9B06F8ACC7C7AFE736E271";				
-						
+
 			try{	
 				sdk.getFriendList(new GetFriendsSdkHandler(), fileds,  start, count, info , ids);	
 			}catch(SdkCallException sdkex){
@@ -115,7 +114,7 @@ public class ConnectingToServer extends Activity {
 			JSONObject jsonSelfInfo = ServerIface.getSelfInfo(selfId);
 			
 			// kakpple_test
-			Log.d("kakpple_test", jsonSelfInfo.toString()); 
+			Log.d(TAG, jsonSelfInfo.toString()); 
 			PhotoTextItem gamerSelf = new PhotoTextItem();
 			
 			gamerSelf.setName(selfName);
@@ -125,7 +124,7 @@ public class ConnectingToServer extends Activity {
 			gamerList.add(gamerSelf);
 			
 			// put JSON self info get from server to intentToHubActivity intent as data
-			intentToHubActivity.putExtra("JSON_SELF_INFO", jsonSelfInfo.toString());			
+			// intentToHubActivity.putExtra("JSON_SELF_INFO", jsonSelfInfo.toString());			
 		}		
 
 		@Override
@@ -171,7 +170,7 @@ public class ConnectingToServer extends Activity {
 			//intentToHubActivity.putExtra("JSON_FRIENDS_INFO", jsonFriendsInfo.toString());
 			
 			// kakpple_test
-			Log.d("kakpple_test", jsonFriendsInfo.toString()); 			
+			Log.d(TAG, jsonFriendsInfo.toString()); 			
 			
 			PhotoTextItem gamerFriend = new PhotoTextItem();
 			for(int i = 1; i < numOfFriends + 1; i++){
@@ -183,10 +182,9 @@ public class ConnectingToServer extends Activity {
 				
 				gamerList.add(gamerFriend);
 				
-				Log.d("kakpple_test", "numOfFirneds = " + numOfFriends);
-				Log.d("kakpple_test", "NAME = " + friendName[i]);
-				Log.d("kakpple_test", "SCORE = " + score);
-				
+				Log.d(TAG, "numOfFirneds = " + numOfFriends);
+				Log.d(TAG, "NAME = " + friendName[i]);
+				Log.d(TAG, "SCORE = " + score);	
 			}
 			
 			Bundle bundle = new Bundle();
