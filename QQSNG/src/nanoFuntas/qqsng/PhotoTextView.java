@@ -25,7 +25,7 @@ public class PhotoTextView extends LinearLayout {
 		
 		mPhoto.setImageDrawable(mItem.getPhoto());
 		mName.setText(mItem.getName());
-		mScore.setText(mItem.getName());
+		mScore.setText(mItem.getScore());
 	}
 	
 	public void setViewPhoto(Drawable photo){

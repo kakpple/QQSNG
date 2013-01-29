@@ -27,7 +27,7 @@ public class RankingFragment extends Fragment {
         Bundle bundle = getArguments();       
         ArrayList<PhotoTextItem> mItemList = bundle.getParcelableArrayList("gamerList");
       	// ArrayList<PhotoTextItem> mItemList = getListView();
-  
+        
     	PhotoTextListAdapter mPhotoTextListAdapter = new PhotoTextListAdapter(getActivity(), mItemList);
         mListView.setAdapter(mPhotoTextListAdapter);
                         
@@ -42,6 +42,7 @@ public class RankingFragment extends Fragment {
     	return inflater.inflate(R.layout.ranking_fragment, container, false);
 	}
     
+	// test method
     private ArrayList<PhotoTextItem> getListView(){
     	ArrayList<PhotoTextItem> itemList = new ArrayList<PhotoTextItem>();
     	PhotoTextItem item = null;

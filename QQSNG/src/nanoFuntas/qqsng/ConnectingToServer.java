@@ -23,17 +23,16 @@ import android.view.Menu;
 
 /**
  * This ConnectingToServer activity gets self ID and Friends ID from QQ server 
- * and send self and friends id to game server and gets self and friends info as JSON,
- * and finally sends this JSON data to HubActivity
+ * and send self and friends id to game server and gets self and friends info of Score, etc as JSON,
+ * and finally sends ArrayList<PhotoTextItem> typed gamerList which include self and friends info of Photo/Name/Score to MainActivity
  */
 public class ConnectingToServer extends Activity {
-	// debugging info
 	private final boolean DEBUG = true;
 	private final String TAG = "ConnectingToServer";
 	
 	private int loginType = CommConfig.LOGIN_FROM_MSF;
 	
-	private Intent intentToHubActivity = null;
+	private Intent intentToMainActivity = null;
 	private ArrayList<PhotoTextItem> gamerList = new ArrayList<PhotoTextItem>();
 	
 	@Override
@@ -42,9 +41,8 @@ public class ConnectingToServer extends Activity {
     	
     	super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_connecting_to_server);
-        // kakpple test
-        intentToHubActivity = new Intent(ConnectingToServer.this, MainActivity.class);
-        
+
+        intentToMainActivity = new Intent(ConnectingToServer.this, MainActivity.class);
         
         // login to QQ server
         OpenApiSdk.setmContext(this);
@@ -98,14 +96,14 @@ public class ConnectingToServer extends Activity {
 		@Override
 		public void onSuccess(String rspContent, int statusCode) {
 	        if(DEBUG) Log.d(TAG, "GetSelfSdkHandler onSuccess called");
+	        
 	        String selfId = null;
 	        String selfName = null;
 	        // get self ID
 			try{
 				Person p = Person.fromJsonString(rspContent);	
 				selfId = p.getId();
-				selfName = p.getDisplayName();
-				
+				selfName = p.getDisplayName();	
 			} catch (Exception e) {
 				CommonUtil.showAlertDialog(ConnectingToServer.this, "个人信息接口", "接口调用失败,错误信息:" + e.getMessage(),
 						"确定", null, null, null, null);
@@ -113,14 +111,10 @@ public class ConnectingToServer extends Activity {
 
 			JSONObject jsonSelfInfo = ServerIface.getSelfInfo(selfId);
 			
-			// kakpple_test
-			Log.d(TAG, jsonSelfInfo.toString()); 
 			PhotoTextItem gamerSelf = new PhotoTextItem();
-			
 			gamerSelf.setName(selfName);
 			Long score = (Long) jsonSelfInfo.get("SCORE");
-			gamerSelf.setScore(score.toString());
-			
+			gamerSelf.setScore(score.toString());			
 			gamerList.add(gamerSelf);
 			
 			// put JSON self info get from server to intentToHubActivity intent as data
@@ -168,30 +162,21 @@ public class ConnectingToServer extends Activity {
 			
 			// put JSON friends info get from server to intentToHubActivity intent as data
 			//intentToHubActivity.putExtra("JSON_FRIENDS_INFO", jsonFriendsInfo.toString());
-			
-			// kakpple_test
-			Log.d(TAG, jsonFriendsInfo.toString()); 			
-			
-			PhotoTextItem gamerFriend = new PhotoTextItem();
+			PhotoTextItem gamerFriend = null;
 			for(int i = 1; i < numOfFriends + 1; i++){
 				JSONObject jsonFriend = (JSONObject) jsonFriendsInfo.get(Integer.toString(i));
 				Long score = (Long) jsonFriend.get("SCORE");
-
+				
+				gamerFriend = new PhotoTextItem();
 				gamerFriend.setName(friendName[i]);
-				gamerFriend.setScore(score.toString());
-				
-				gamerList.add(gamerFriend);
-				
-				Log.d(TAG, "numOfFirneds = " + numOfFriends);
-				Log.d(TAG, "NAME = " + friendName[i]);
-				Log.d(TAG, "SCORE = " + score);	
+				gamerFriend.setScore(score.toString());				
+				gamerList.add(gamerFriend);				
 			}
 			
 			Bundle bundle = new Bundle();
 			bundle.putParcelableArrayList("gamerList", gamerList);
-			intentToHubActivity.putExtras(bundle);
-			
-			startActivity(intentToHubActivity);
+			intentToMainActivity.putExtras(bundle);
+			startActivity(intentToMainActivity);
 			finish();
 		}
 		
