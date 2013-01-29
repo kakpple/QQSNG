@@ -35,6 +35,10 @@ public class ConnectingToServer extends Activity {
 	private Intent intentToMainActivity = null;
 	private ArrayList<PhotoTextItem> gamerList = new ArrayList<PhotoTextItem>();
 	
+	// isGetSelfDone and isGetFriendsDone flag is used to check if GetSelfSdkHandler and GetFriendsSdkHandler is over
+	private boolean isGetSelfDone = false;
+	private boolean isGetFriendsDone = false;
+	
 	@Override
     public void onCreate(Bundle savedInstanceState) {
         if(DEBUG) Log.d(TAG, "onCreate called");
@@ -48,6 +52,10 @@ public class ConnectingToServer extends Activity {
         OpenApiSdk.setmContext(this);
         loginType = AppInfoConfig.getLoginType(ConnectingToServer.this);
         OpenApiSdk.getInstance().doRequestLogin(new LoginSdkHandler(),loginType);
+        
+        // Monitor thread is used to make sure that both GetSelfSdkHandler and GetFriendsSdkHandler are over 
+        // and starts MainActivity, sending gamerList to the MainActivity
+        new MonitorThread("monitorThread").start();
     }
 
     private class LoginSdkHandler implements SdkHandler{
@@ -59,7 +67,10 @@ public class ConnectingToServer extends Activity {
 			RequestInfo info = new RequestInfo();
 			OpenApiSdk sdk = OpenApiSdk.getInstance();
 			
-			// get self info from QQ server
+			// initialize isGetSelfDone flag to false
+	        isGetSelfDone = false;
+			
+	        // get self info from QQ server
 			try{
 				sdk.getSelf(new GetSelfSdkHandler(), fileds, info);
 			}catch(SdkCallException sdkex){
@@ -67,7 +78,10 @@ public class ConnectingToServer extends Activity {
 						"确定", null, null, null, null);
 			}
 			
-			// get friends info from QQ server
+			// initialize isGetFriendsDone flag to false
+	        isGetFriendsDone = false;
+			
+	        // get friends info from QQ server
 			Integer start = 0;
 			Integer count = 10;//请注意最大20	
 			String ids = "301BB0F1B1204D93A801859A006460D1,606C16BADF574E34BA5051989081FA5E,8BC9A0B9FC9B06F8ACC7C7AFE736E271";				
@@ -79,6 +93,7 @@ public class ConnectingToServer extends Activity {
 					" 内部错误码:" + sdkex.getInternalErrorCode(),
 					"确定", null, null, null, null);
 			}
+			
 		}
 
 		@Override
@@ -117,6 +132,7 @@ public class ConnectingToServer extends Activity {
 			gamerSelf.setScore(score.toString());			
 			gamerList.add(gamerSelf);
 			
+			isGetSelfDone = true;
 			// put JSON self info get from server to intentToHubActivity intent as data
 			// intentToHubActivity.putExtra("JSON_SELF_INFO", jsonSelfInfo.toString());			
 		}		
@@ -170,14 +186,10 @@ public class ConnectingToServer extends Activity {
 				gamerFriend = new PhotoTextItem();
 				gamerFriend.setName(friendName[i]);
 				gamerFriend.setScore(score.toString());				
-				gamerList.add(gamerFriend);				
+				gamerList.add(gamerFriend);	
 			}
 			
-			Bundle bundle = new Bundle();
-			bundle.putParcelableArrayList("gamerList", gamerList);
-			intentToMainActivity.putExtras(bundle);
-			startActivity(intentToMainActivity);
-			finish();
+			isGetFriendsDone = true;
 		}
 		
 		public void onFailure(SdkCallException e){
@@ -186,6 +198,32 @@ public class ConnectingToServer extends Activity {
 					"确定", null, null, null, null);
 		}
 	}
+	
+	/**
+     * This Monitor thread is used to check if GetSelfSdkHandler and GetFriendsSdkHandler is over.
+     * After GetSelfSdkHandler and GetFriendsSdkHandler is over, self and friends info is added to gamerList accordingly.
+     * After both are done, gamerList is passed to MainActivity. 
+     */
+    class MonitorThread extends Thread {
+        public MonitorThread(String str) {
+        	super(str);
+        }
+        
+        public void run() {
+        	Log.d(TAG, "Monitor Thread is Started");
+        	while(true){
+		        if( (isGetSelfDone == true) && (isGetFriendsDone == true) ){
+		        	Bundle bundle = new Bundle();
+		    		bundle.putParcelableArrayList("gamerList", gamerList);
+		   			intentToMainActivity.putExtras(bundle);
+		   			startActivity(intentToMainActivity);
+		   			finish();
+		   			break;
+	        	}
+	        } 
+        }
+        
+    }
 	
  	@Override
 	protected void onDestroy() {
@@ -206,4 +244,5 @@ public class ConnectingToServer extends Activity {
         getMenuInflater().inflate(R.menu.activity_connecting_to_server, menu);
         return true;
     }
+       
 }
