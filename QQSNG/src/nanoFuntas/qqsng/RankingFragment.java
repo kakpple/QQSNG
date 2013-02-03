@@ -7,7 +7,10 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ListView;
 
 /**
@@ -18,6 +21,8 @@ public class RankingFragment extends Fragment {
 	private final static String TAG = "RankingFragment";
 	
 	private ListView mListView = null;
+	private Button mButtonStart = null;
+	private ImageView mImageViewHeart = null;
 	
 	@Override
     public void onStart(){
@@ -25,7 +30,36 @@ public class RankingFragment extends Fragment {
 		
 		super.onStart();
     	mListView = (ListView) getView().findViewById(R.id.listView1);
-
+    	mButtonStart = (Button) getView().findViewById(R.id.buttonStart);
+    	mImageViewHeart = (ImageView) getActivity().findViewById(R.id.imageViewHeart);
+    	
+    	mImageViewHeart.setImageResource(R.drawable.heart5);
+    	
+    	// kakpple test for heart image
+    	mButtonStart.setOnClickListener(new OnClickListener(){
+        	int i = 0;
+    		@Override
+			public void onClick(View v) {
+				switch(i++%6){
+					case 0: mImageViewHeart.setImageResource(R.drawable.heart0);
+							break;
+					case 1: mImageViewHeart.setImageResource(R.drawable.heart1);
+							break;
+					case 2: mImageViewHeart.setImageResource(R.drawable.heart2);
+							break;
+					case 3: mImageViewHeart.setImageResource(R.drawable.heart3);
+							break;
+					case 4: mImageViewHeart.setImageResource(R.drawable.heart4);
+							break;
+					case 5: mImageViewHeart.setImageResource(R.drawable.heart5);
+							break;
+					default:{
+							Log.d(TAG, "abnormal i/5");
+					}							
+				}
+			}	
+    	});
+    	
         Bundle bundle = getArguments();       
         ArrayList<PhotoTextItem> mItemList = bundle.getParcelableArrayList("gamerList");        
         sortListView(mItemList);
