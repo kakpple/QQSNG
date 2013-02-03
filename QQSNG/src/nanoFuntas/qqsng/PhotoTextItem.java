@@ -1,6 +1,6 @@
 package nanoFuntas.qqsng;
 
-import android.graphics.drawable.Drawable;
+import android.graphics.Bitmap;
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -8,51 +8,47 @@ import android.os.Parcelable;
  * This class defines data type of PhotoTextItem.
  * photo, name and score are member of PhotoTextItem data type.
  */
-public class PhotoTextItem implements Parcelable{
-	private Drawable mPhoto = null;
+public class PhotoTextItem implements Parcelable{	
+	private Bitmap mPhoto = null;
 	private String mName = null;
-	private String mScore = null;
-	
+	private String mScore = null;	
 	private boolean mSelectable = true;
 	
 	public PhotoTextItem(){
 	}
 	
-	public PhotoTextItem(Drawable photo, String name, String score){
+	public PhotoTextItem(Bitmap photo, String name, String score){
 		this.mPhoto = photo;
 		this.mName = name;
 		this.mScore = score;
 	}
 	
 	public PhotoTextItem(Parcel in){
+		mPhoto = in.readParcelable(getClass().getClassLoader());
 		mName = in.readString();
 		mScore = in.readString();
 	}
 
 	@Override
 	public int describeContents() {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	@Override
 	public void writeToParcel(Parcel dest, int flags) {
-		// TODO Auto-generated method stub
+		dest.writeParcelable(mPhoto, flags);
 		dest.writeString(mName);
 		dest.writeString(mScore);
 	}
 	
 	public static final Parcelable.Creator<PhotoTextItem> CREATOR = new Parcelable.Creator<PhotoTextItem>() {
-
 		@Override
 		public PhotoTextItem createFromParcel(Parcel source) {
-			// TODO Auto-generated method stub
 			return new PhotoTextItem(source);
 		}
 
 		@Override
 		public PhotoTextItem[] newArray(int size) {
-			// TODO Auto-generated method stub
 			return new PhotoTextItem[size];
 		}
 	};
@@ -65,11 +61,11 @@ public class PhotoTextItem implements Parcelable{
 		this.mSelectable = selectable;
 	}
 	
-	public void setPhoto(Drawable photo){
+	public void setPhoto(Bitmap photo){
 		this.mPhoto = photo;
 	}
 	
-	public Drawable getPhoto(){
+	public Bitmap getPhoto(){
 		return mPhoto;
 	}
 	

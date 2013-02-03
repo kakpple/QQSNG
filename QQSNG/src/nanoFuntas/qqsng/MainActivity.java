@@ -38,10 +38,6 @@ public class MainActivity extends Activity {
             
             mRankingFragment.setArguments(bundle);
             
-            // In case this activity was started with special instructions from an Intent,
-            // pass the Intent's extras to the fragment as arguments
-            //mRankingFragment.setArguments(getIntent().getExtras());
-            
             // Add the fragment to the 'fragment_container' FrameLayout
             getFragmentManager().beginTransaction().add(R.id.fragment_container, mRankingFragment).commit();
         }
