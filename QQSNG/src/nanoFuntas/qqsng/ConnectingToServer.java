@@ -39,7 +39,7 @@ public class ConnectingToServer extends Activity {
 	private final String TAG = "ConnectingToServer";
 		
 	private Intent intentToMainActivity = null;
-	private ArrayList<PhotoTextItem> gamerList = new ArrayList<PhotoTextItem>();	
+	private ArrayList<PhotoTextItem> gamerList = null;	
 	// isGetSelfDone and isGetFriendsDone flag is used to check if GetSelfSdkHandler and GetFriendsSdkHandler is over
 	private boolean isGetSelfDone = false;
 	private boolean isGetFriendsDone = false;
@@ -54,6 +54,7 @@ public class ConnectingToServer extends Activity {
         setContentView(R.layout.activity_connecting_to_server);
         
         intentToMainActivity = new Intent(ConnectingToServer.this, MainActivity.class);
+        gamerList = new ArrayList<PhotoTextItem>();
         // login to QQ server
         OpenApiSdk.setmContext(this);
         loginType = AppInfoConfig.getLoginType(ConnectingToServer.this);
@@ -86,7 +87,7 @@ public class ConnectingToServer extends Activity {
 			// initialize isGetFriendsDone flag to false and get friends info from QQ server
 	        isGetFriendsDone = false;
 			Integer start = 0;
-			Integer count = 10;//请注意最大20	
+			Integer count = 20;//请注意最大20	
 			String ids = "301BB0F1B1204D93A801859A006460D1,606C16BADF574E34BA5051989081FA5E,8BC9A0B9FC9B06F8ACC7C7AFE736E271";				
 			try{	
 				sdk.getFriendList(new GetFriendsSdkHandler(), fileds,  start, count, info , ids);	

@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.app.Activity;
 import android.app.Fragment;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.util.Log;
 import android.view.Menu;
 import android.widget.ImageView;
@@ -11,7 +12,7 @@ import android.widget.ImageView;
 public class MainActivity extends Activity {
 	private final static boolean DEBUG = true;
 	private final static String TAG = "MainActivity";
-		
+
 	@Override
     public void onCreate(Bundle savedInstanceState) {
         if(DEBUG) Log.d(TAG, "onCreate()");
