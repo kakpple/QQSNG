@@ -14,14 +14,14 @@ public class ServerIface {
 	private static final String TAG = "ServerIface";
 	
 	// token 
-	private static final String REQ_TYPE = "REQ_TYPE";
-	private static final String REQ_SELF_INFO = "REQ_SELF_INFO";
-	private static final String REQ_FRIENDS_INFO = "REQ_FRIENDS_INFO";
-	private static final String REQ_SCORE_UPDATE = "REQ_SCORE_UPDATE"; 
-	private static final String SELF_ID = "SELF_ID";	
-	private static final String SCORE = "SCORE";
+	public static final String REQ_TYPE = "REQ_TYPE";
+	public static final String REQ_SELF_INFO = "REQ_SELF_INFO";
+	public static final String REQ_FRIENDS_INFO = "REQ_FRIENDS_INFO";
+	public static final String REQ_SCORE_UPDATE = "REQ_SCORE_UPDATE"; 
+	public static final String SELF_ID = "SELF_ID";	
+	public static final String SCORE = "SCORE";
 	
-	private static final String RSP_TYPE = "RSP_TYPE";
+	public static final String RSP_TYPE = "RSP_TYPE";
 	
 	/**
 	 * This getSelfInfo function sends selfId to server and returns self Info as JSON data to application
@@ -89,11 +89,12 @@ public class ServerIface {
      * This updateScore function updates score to server 
      * and retrieves status code implying transaction success or failure
      */
-	public static JSONObject updateScore(double score){
+	public static JSONObject updateScore(String selfId, double score){
 		if(DEBUG) Log.i(TAG, "updateScore()");
 		
 		JSONObject jsonScoreUpdate = new JSONObject();
 		jsonScoreUpdate.put(ServerIface.REQ_TYPE, ServerIface.REQ_SCORE_UPDATE);
+		jsonScoreUpdate.put(ServerIface.SELF_ID, selfId);
 		jsonScoreUpdate.put(ServerIface.SCORE, score);
 		
 		HttpPostJsonAsyncTask mHttpPostJsonAsyncTask = new HttpPostJsonAsyncTask();

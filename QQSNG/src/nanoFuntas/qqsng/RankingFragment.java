@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
 import android.app.Fragment;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -34,6 +35,9 @@ public class RankingFragment extends Fragment {
 	private final String QQSNG_PREFERENCES = "namoFuntas.qqsng";
     private final String HEART = "HEART";
 	
+    private Bundle bundle = null;
+    private Intent intentToGame = null;
+    
     private final long HEART_MAKING_TIME = 9 * 1000; // 9 seconds
     private final long ONE_SECOND = 1 * 1000; // 1000 milli second, 1 second 
     
@@ -57,12 +61,15 @@ public class RankingFragment extends Fragment {
     	mHeartTimer = new HeartTimer(HEART_MAKING_TIME, ONE_SECOND);
    	
     	// get, sort and display gamerLists
-        Bundle bundle = getArguments();       
+        bundle = getArguments();  
         ArrayList<PhotoTextItem> mItemList = bundle.getParcelableArrayList("gamerList");        
         sortListView(mItemList);
     	PhotoTextListAdapter mPhotoTextListAdapter = new PhotoTextListAdapter(getActivity(), mItemList);
         mListView.setAdapter(mPhotoTextListAdapter);                        
     	
+        intentToGame = new Intent(getActivity(), Game.class);
+        intentToGame.putExtras(bundle);
+        
     	// kakpple test for heart image
     	mButtonStart.setOnClickListener(new OnClickListener(){       	
     		@Override
@@ -76,6 +83,8 @@ public class RankingFragment extends Fragment {
         		numberOfHeart--;
         		mSPeditor.putInt(HEART, numberOfHeart);
         		mSPeditor.commit();
+        		
+        		startActivity(intentToGame);
         		
         		setHeartImage(numberOfHeart);
         		

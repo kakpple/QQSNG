@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 
 import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 
 import com.tencent.android.sdk.AppInfoConfig;
 import com.tencent.android.sdk.FriendList;
@@ -37,8 +38,11 @@ import android.view.Menu;
 public class ConnectingToServer extends Activity {
 	private final boolean DEBUG = true;
 	private final String TAG = "ConnectingToServer";
-		
+	
+	public final static String JSON_SELF_INFO = "JSON_SELF_INFO";
 	private Intent intentToMainActivity = null;
+	private Bundle bundle = null;
+	
 	private ArrayList<PhotoTextItem> gamerList = null;	
 	// isGetSelfDone and isGetFriendsDone flag is used to check if GetSelfSdkHandler and GetFriendsSdkHandler is over
 	private boolean isGetSelfDone = false;
@@ -54,6 +58,8 @@ public class ConnectingToServer extends Activity {
         setContentView(R.layout.activity_connecting_to_server);
         
         intentToMainActivity = new Intent(ConnectingToServer.this, MainActivity.class);
+        bundle = new Bundle();
+        
         gamerList = new ArrayList<PhotoTextItem>();
         // login to QQ server
         OpenApiSdk.setmContext(this);
@@ -126,6 +132,16 @@ public class ConnectingToServer extends Activity {
 			}
 
 			JSONObject jsonSelfInfo = ServerIface.getSelfInfo(selfId);
+			String strJsonSelfInfo = jsonSelfInfo.toJSONString();
+			Log.d(TAG, strJsonSelfInfo);
+			bundle.putString(JSON_SELF_INFO, strJsonSelfInfo);
+			
+			//JSONObject txtToJson = (JSONObject) JSONValue.parse(strJsonSelfInfo);
+			//long heart = (Long) txtToJson.get("HEART");
+			//long s = (Long) txtToJson.get("SCORE");
+			//Log.d(TAG, "HEART = " + Long.toString(heart));
+			//Log.d(TAG, "SCORE = " + Long.toString(s));
+			
 			
 			PhotoTextItem gamerSelf = new PhotoTextItem();			
 			Bitmap bm = getPhotoFromURL(selfPhotoURL);			
@@ -234,9 +250,8 @@ public class ConnectingToServer extends Activity {
         public void run() {
         	Log.d(TAG, "Monitor Thread is Started");
         	while(true){
-		        if( (isGetSelfDone == true) && (isGetFriendsDone == true) ){
-		        	Bundle bundle = new Bundle();
-		    		bundle.putParcelableArrayList("gamerList", gamerList);
+		        if( (isGetSelfDone == true) && (isGetFriendsDone == true) ){		    		
+		        	bundle.putParcelableArrayList("gamerList", gamerList);
 		   			intentToMainActivity.putExtras(bundle);
 		   			startActivity(intentToMainActivity);
 		   			finish();
