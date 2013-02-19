@@ -8,6 +8,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,9 +27,9 @@ public class RankingFragment extends Fragment {
 	private final static boolean DEBUG = true;
 	private final static String TAG = "RankingFragment";
 	
-	private final int NUMBER_OF_MAX_HEART = 5;
-	private final int HEART_GENERATION_MILLI_SEC = 10 * 1000; //10 SEC
-    private final long THOUSAND_MILLI_SEC = 1 * 1000; // 1000 milli second, 1 second 
+	private final static int MAX_HEART = 5;
+	private final static long HEART_GENERATION_MILLI = 120 * 1000; //10 SEC
+    private final static long THOUSAND_MILLI = 1 * 1000; // 1000 milli second, 1 second 
 
 	private ListView mListView = null;
 	private Button mButtonStart = null;
@@ -44,12 +46,12 @@ public class RankingFragment extends Fragment {
 	private final String LAST_HEART_TIME = "namoFuntas.qqsng.lastHeartTime";
 	private final String TIME = "TIME";
 	
-    private Bundle bundle = null;
     private Intent intentToGame = null;
     
-    //private final long HEART_MAKING_TIME = 9 * 1000; // 9 seconds
-    
-    private HeartTimer mHeartTimer = null;
+    private MyHandler mMyHandler = new MyHandler();
+    private static boolean doneFromTimer = true; 
+    private static long remainingSec = HEART_GENERATION_MILLI;
+    private static HeartMonitorThread mHeartMonitorThread = null;
     
 	@Override
     public void onStart(){
@@ -62,17 +64,18 @@ public class RankingFragment extends Fragment {
     	mTextViewTimer = (TextView) getActivity().findViewById(R.id.timer_textView);
     	
     	mSPNumOfHearts = getActivity().getSharedPreferences(NUMBER_OF_HEATS, 0);
-    	mSPEditorNumOfHearts = mSPNumOfHearts.edit();    	
-    	
+    	mSPEditorNumOfHearts = mSPNumOfHearts.edit();    	    	
     	mSPLastHeartTime = getActivity().getSharedPreferences(LAST_HEART_TIME, 0);
     	mSPEditorLastHeartTime = mSPLastHeartTime.edit();
     	
-    	int numberOfHeart = mSPNumOfHearts.getInt(HEART, NUMBER_OF_MAX_HEART); 	
-		setHeartImage(numberOfHeart);    	
-    	mHeartTimer = new HeartTimer(HEART_GENERATION_MILLI_SEC, THOUSAND_MILLI_SEC);
+    	int numOfHearts = mSPNumOfHearts.getInt(HEART, MAX_HEART);
+		setHeartImage(numOfHearts);
+		if(numOfHearts == MAX_HEART){
+			mTextViewTimer.setText("MAX");
+		}
    	
     	// get, sort and display gamerLists
-        bundle = getArguments();  
+        Bundle bundle = getArguments();  
         ArrayList<PhotoTextItem> mItemList = bundle.getParcelableArrayList("gamerList");        
         sortListView(mItemList);
     	PhotoTextListAdapter mPhotoTextListAdapter = new PhotoTextListAdapter(getActivity(), mItemList);
@@ -80,65 +83,117 @@ public class RankingFragment extends Fragment {
     	
         intentToGame = new Intent(getActivity(), Game.class);
         intentToGame.putExtras(bundle);
-        
-        showHeartsAndTimer();
+                
+        if(mHeartMonitorThread == null){
+        	mHeartMonitorThread = new HeartMonitorThread("HeartMonitorThread");
+        	mHeartMonitorThread.start();
+        }
         
         mButtonStart.setOnClickListener(new OnClickListener(){       	
     		@Override
 			public void onClick(View v) {
-    			int numberOfHeart = mSPNumOfHearts.getInt(HEART, NUMBER_OF_MAX_HEART);
-        		if(numberOfHeart == 0){
+    			if(DEBUG) Log.d(TAG, "GameStart Buttion Clicked!");
+    			
+    			int numOfHearts = mSPNumOfHearts.getInt(HEART, MAX_HEART);
+        		if(numOfHearts == 0){
         			Log.e(TAG, "No heart~~");
         			return;
         		}
     			
-        		numberOfHeart--;
-        		mSPEditorNumOfHearts.putInt(HEART, numberOfHeart);
+        		numOfHearts--;
+        		mSPEditorNumOfHearts.putInt(HEART, numOfHearts);
         		mSPEditorNumOfHearts.commit();
         		
-        		Log.d(TAG, "kakpple, NumOfHearts=" + mSPNumOfHearts.getInt(HEART, NUMBER_OF_MAX_HEART));
-        		
-        		if(numberOfHeart == NUMBER_OF_MAX_HEART - 1){
-        			mSPEditorLastHeartTime.putLong(TIME, System.currentTimeMillis());
-        			mSPEditorLastHeartTime.commit();
-        		}
-        		
-        		setHeartImage(numberOfHeart);
-        		startActivity(intentToGame);
-        		       						
+        		setHeartImage(numOfHearts);
+        		startActivity(intentToGame);        		       						
 			}				
     	});    	
 	}
-        
-	private void showHeartsAndTimer() {
-		// TODO Auto-generated method stub
-		int numOfHearts = mSPNumOfHearts.getInt(HEART, NUMBER_OF_MAX_HEART);
-		
-		if(numOfHearts >= NUMBER_OF_MAX_HEART ){
-			setHeartImage(NUMBER_OF_MAX_HEART);
-			return;
+    
+	class HeartTimer extends CountDownTimer{		
+		public HeartTimer(long millisInFuture, long countDownInterval) {
+			super(millisInFuture, countDownInterval);
 		}
 		
-		long now = System.currentTimeMillis();
-		long lastHeartTime = mSPLastHeartTime.getLong(TIME, 0);
-		long elaspedMilliSec = now - lastHeartTime;
-		int heartGenerated = (int) ( elaspedMilliSec / HEART_GENERATION_MILLI_SEC );
-		
-		if(heartGenerated + numOfHearts >= NUMBER_OF_MAX_HEART){
-			mSPEditorNumOfHearts.putInt(HEART, NUMBER_OF_MAX_HEART);
-    		mSPEditorNumOfHearts.commit();
-    		setHeartImage(NUMBER_OF_MAX_HEART);
-		}else{
-			long remainingMilliSec = HEART_GENERATION_MILLI_SEC - elaspedMilliSec % HEART_GENERATION_MILLI_SEC;
-			numOfHearts += heartGenerated;
-			mSPEditorNumOfHearts.putInt(HEART, numOfHearts);
-    		mSPEditorNumOfHearts.commit();
-    		setHeartImage(numOfHearts);
-    		new HeartTimer(remainingMilliSec, THOUSAND_MILLI_SEC).start();
-    		//mHeartTimer.start();
+		@Override
+		public void onFinish() {        	
+        	if(DEBUG) Log.d(TAG, "Class HeartTimer, onFinish()");
+			int numOfHearts = mSPNumOfHearts.getInt(HEART, MAX_HEART);
+        	      	
+        	numOfHearts++;
+        	mSPEditorNumOfHearts.putInt(HEART, numOfHearts);
+        	mSPEditorNumOfHearts.commit();
+        	setHeartImage(numOfHearts);
+        	
+			mSPEditorLastHeartTime.putLong(TIME, System.currentTimeMillis());
+			mSPEditorLastHeartTime.commit();
+        	
+			// kakpple test
+			long now = mSPLastHeartTime.getLong(TIME, 0);
+        	Log.d(TAG, "HeartTimer onFinish() millis =" + now);
+        	
+        	if(numOfHearts >= MAX_HEART){
+        		mTextViewTimer.setText("MAX");
+        	}
+        	
+        	doneFromTimer = true;
+		}
+
+		@Override
+		public void onTick(long millisUntilFinished) {
+			SimpleDateFormat formatter = new SimpleDateFormat("mm:ss");
+        	String dateFormatted = formatter.format(millisUntilFinished);            	
+        	mTextViewTimer.setText("" + dateFormatted);
 		}
 	}
+		
+	private class HeartMonitorThread extends Thread {
+        public HeartMonitorThread(String str) {
+        	super(str);
+        }
+        
+        public void run() {
+        	Log.d(TAG, "Heart Monitor Thread is Started");
+        	while(true){
+        		if(doneFromTimer){
+        			int numOfHearts = mSPNumOfHearts.getInt(HEART, MAX_HEART);
+        			if(numOfHearts < MAX_HEART){
+        				long now = System.currentTimeMillis();
+        				long lastHeartTime = mSPLastHeartTime.getLong(TIME, now);
+        				long elaspedTime = now - lastHeartTime;
+        				
+        				Log.d(TAG, "now = " + now);
+        				Log.d(TAG, "lastHeartTime = " + lastHeartTime);
+        				Log.d(TAG, "elaspedTime = " + elaspedTime);
+        				
+        				if(numOfHearts + elaspedTime/HEART_GENERATION_MILLI >=5 ){
+        					numOfHearts = MAX_HEART;
+        					mSPEditorNumOfHearts.putInt(HEART, numOfHearts);
+        		        	mSPEditorNumOfHearts.commit();
+        				}else{
+        					numOfHearts += elaspedTime/HEART_GENERATION_MILLI;
+        					mSPEditorNumOfHearts.putInt(HEART, numOfHearts);
+        		        	mSPEditorNumOfHearts.commit();
+        		        	remainingSec = HEART_GENERATION_MILLI - elaspedTime % HEART_GENERATION_MILLI;
+        				}
+        				
+        				mMyHandler.sendMessage(mMyHandler.obtainMessage());
+        				doneFromTimer = false;
+        			}
+        		}
+        	} 
+        }
 
+    }
+
+	private class MyHandler extends Handler{
+		@Override
+		public void handleMessage(Message msg){	
+			if(DEBUG) Log.d(TAG, "class MyHandler, handleMessage()");
+			new HeartTimer(remainingSec, THOUSAND_MILLI).start();
+		}
+	}
+	
 	private void setHeartImage(int numberOfHeart) {
 		switch(numberOfHeart){
 			case 0: mImageViewHeart.setImageResource(R.drawable.heart0);
@@ -178,46 +233,6 @@ public class RankingFragment extends Fragment {
 					mItemList.set(j+1, pti);
 				}
 			}
-		}
-	}
-
-
-	class HeartTimer extends CountDownTimer{
-		//public boolean isHeartTimerRunning = false;
-		
-		public HeartTimer(long millisInFuture, long countDownInterval) {
-			super(millisInFuture, countDownInterval);
-		}
-		
-		@Override
-		public void onFinish() {        	
-        	int numberOfHeart = mSPNumOfHearts.getInt(HEART, NUMBER_OF_MAX_HEART);
-        	
-        	// kakpple test log
-        	//Log.d(TAG, "kakpple, onfinish() NumberofHeart="+numberOfHeart);
-        	
-        	
-        	numberOfHeart++;
-        	mSPEditorNumOfHearts.putInt(HEART, numberOfHeart);
-        	mSPEditorNumOfHearts.commit();
-        	setHeartImage(numberOfHeart);
-        	
-        	if(numberOfHeart < NUMBER_OF_MAX_HEART){
-        		new HeartTimer(HEART_GENERATION_MILLI_SEC, THOUSAND_MILLI_SEC).start();
-        		//mHeartTimer.start();
-        		//kakpple test log
-        		Log.d(TAG, "HeartTimer.start(), number of heart =" + numberOfHeart);
-        	}else if(numberOfHeart >= NUMBER_OF_MAX_HEART){
-        	//	isHeartTimerRunning = false;
-        		mTextViewTimer.setText("MAX");
-        	}
-		}
-
-		@Override
-		public void onTick(long millisUntilFinished) {
-			SimpleDateFormat formatter = new SimpleDateFormat("mm:ss");
-        	String dateFormatted = formatter.format(millisUntilFinished);            	
-        	mTextViewTimer.setText("" + dateFormatted);
 		}
 	}
 	
