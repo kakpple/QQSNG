@@ -28,9 +28,9 @@ public class RankingFragment extends Fragment {
 	private final static String TAG = "RankingFragment";
 	
 	private final static int MAX_HEART = 5;
-	private final static long HEART_GENERATION_MILLI = 120 * 1000; //10 SEC
-    private final static long THOUSAND_MILLI = 1 * 1000; // 1000 milli second, 1 second 
-
+	private final static int HEART_GENERATION_SEC = 120; //10 SEC
+    private final static long THOUSAND_MILLI = 1000; // 1000 milli second, 1 second 
+    
 	private ListView mListView = null;
 	private Button mButtonStart = null;
 	private ImageView mImageViewHeart = null;
@@ -44,7 +44,7 @@ public class RankingFragment extends Fragment {
 	private SharedPreferences mSPLastHeartTime = null;
 	private SharedPreferences.Editor mSPEditorLastHeartTime = null;
 	private final String LAST_HEART_TIME = "namoFuntas.qqsng.lastHeartTime";
-	private final String TIME = "TIME";
+	private final String LH_TIME = "LH_TIME";
 
 	private SharedPreferences mSPRemainingTime = null;
 	private SharedPreferences.Editor mSPEditorRemainingTime = null;
@@ -55,12 +55,12 @@ public class RankingFragment extends Fragment {
     
     private MyHandler mMyHandler = new MyHandler();
     private static boolean doneFromTimer = true; 
-    private static long remainingSec = HEART_GENERATION_MILLI;
-    private static HeartMonitorThread mHeartMonitorThread = null;
-    
+    private static int remainingSec = HEART_GENERATION_SEC;
+    private static HeartMonitorThread mHeartMonitorThread = null;    
     private static boolean heart5to4 = false;
-    private static int numberOfHearts = 5;
-	@Override
+    private static int numOfHearts;
+    
+    @Override
     public void onStart(){
     	if(DEBUG) Log.d(TAG, "onStart()");
 		
@@ -69,7 +69,17 @@ public class RankingFragment extends Fragment {
     	mButtonStart = (Button) getView().findViewById(R.id.buttonStart);
     	mImageViewHeart = (ImageView) getActivity().findViewById(R.id.imageViewHeart);
     	mTextViewTimer = (TextView) getActivity().findViewById(R.id.timer_textView);
+    	    	
+    	// get, sort and display gamerLists
+        Bundle bundle = getArguments();  
+        ArrayList<PhotoTextItem> mItemList = bundle.getParcelableArrayList("gamerList");        
+        sortListView(mItemList);
+    	PhotoTextListAdapter mPhotoTextListAdapter = new PhotoTextListAdapter(getActivity(), mItemList);
+        mListView.setAdapter(mPhotoTextListAdapter);  
     	
+        intentToGame = new Intent(getActivity(), Game.class);
+        intentToGame.putExtras(bundle);
+        
     	mSPNumOfHearts = getActivity().getSharedPreferences(NUMBER_OF_HEATS, 0);
     	mSPEditorNumOfHearts = mSPNumOfHearts.edit();    	    	
     	mSPLastHeartTime = getActivity().getSharedPreferences(LAST_HEART_TIME, 0);
@@ -77,21 +87,11 @@ public class RankingFragment extends Fragment {
     	mSPRemainingTime = getActivity().getSharedPreferences(REMAINING_TIME, 0);
     	mSPEditorRemainingTime = mSPRemainingTime.edit();
     	
-    	int numOfHearts = mSPNumOfHearts.getInt(HEART, MAX_HEART);
+    	numOfHearts = mSPNumOfHearts.getInt(HEART, MAX_HEART);
 		setHeartImage(numOfHearts);
 		if(numOfHearts == MAX_HEART){
 			mTextViewTimer.setText("MAX");
-		}
-   	
-    	// get, sort and display gamerLists
-        Bundle bundle = getArguments();  
-        ArrayList<PhotoTextItem> mItemList = bundle.getParcelableArrayList("gamerList");        
-        sortListView(mItemList);
-    	PhotoTextListAdapter mPhotoTextListAdapter = new PhotoTextListAdapter(getActivity(), mItemList);
-        mListView.setAdapter(mPhotoTextListAdapter);                        
-    	
-        intentToGame = new Intent(getActivity(), Game.class);
-        intentToGame.putExtras(bundle);
+		}   	                      
                 
         if(mHeartMonitorThread == null){
         	mHeartMonitorThread = new HeartMonitorThread("HeartMonitorThread");
@@ -103,14 +103,13 @@ public class RankingFragment extends Fragment {
 			public void onClick(View v) {
     			if(DEBUG) Log.d(TAG, "GameStart Buttion Clicked!");
     			
-    			int numOfHearts = mSPNumOfHearts.getInt(HEART, MAX_HEART);
+    			numOfHearts = mSPNumOfHearts.getInt(HEART, MAX_HEART);
         		if(numOfHearts == 0){
         			Log.e(TAG, "No heart~~");
         			return;
         		}
     			
         		numOfHearts--;
-        		numberOfHearts = numOfHearts;
         		if(numOfHearts == 4){
         			heart5to4 = true;
         		}
@@ -125,51 +124,55 @@ public class RankingFragment extends Fragment {
 	}
     
 	private class HeartMonitorThread extends Thread {
-        public HeartMonitorThread(String str) {
+		int now; 
+		int lastHeartTime;
+		int lastRemainingTime;
+		int elaspedTime;
+		int elaspedTimeSinceLastHeartIncreased;
+		
+		public HeartMonitorThread(String str) {
         	super(str);
         }
         
         public void run() {
         	Log.d(TAG, "Heart Monitor Thread is Started");
         	while(true){
-        		if(doneFromTimer){
-        			
-        			if( numberOfHearts < MAX_HEART){
-        					
-        				int numOfHearts = mSPNumOfHearts.getInt(HEART, MAX_HEART);
+        		if(doneFromTimer && mSPNumOfHearts.getInt(HEART, MAX_HEART) < MAX_HEART){        			        			
+        			numOfHearts = mSPNumOfHearts.getInt(HEART, MAX_HEART);
         				
-        				remainingSec = HEART_GENERATION_MILLI;
-        				if( heart5to4 ){
-        					heart5to4 = false;
-        					Log.d(TAG, "heart5to4");
-        				}else{	
-	        				long now = System.currentTimeMillis();
-	        				long lastHeartTime = mSPLastHeartTime.getLong(TIME, now);
-	        				long elaspedTime = now - lastHeartTime;
-	        				long remainingTime = mSPRemainingTime.getLong(RE_TIME, 0);
+        			remainingSec = HEART_GENERATION_SEC;
+        			if( heart5to4 ){
+        				heart5to4 = false;
+        				Log.d(TAG, "heart5to4");
+        			}else{	
+	        			now = (int) (System.currentTimeMillis() / THOUSAND_MILLI);
+	        			lastHeartTime = (int) (mSPLastHeartTime.getLong(LH_TIME, now) / THOUSAND_MILLI);
+	        			lastRemainingTime = (int) (mSPRemainingTime.getLong(RE_TIME, 0) / THOUSAND_MILLI);
+	        			elaspedTime = now - lastHeartTime;
+	        			elaspedTimeSinceLastHeartIncreased = HEART_GENERATION_SEC - lastRemainingTime + elaspedTime;
 	        				
-	        				Log.d(TAG, "now = " + now);
-	        				Log.d(TAG, "lastHeartTime = " + lastHeartTime);
-	        				Log.d(TAG, "elaspedTime = " + elaspedTime);
-	        				Log.d(TAG, "remainingTime = " + remainingTime);
+	        			Log.d(TAG, "now = " + now);
+	        			Log.d(TAG, "lastHeartTime = " + lastHeartTime);
+	        			Log.d(TAG, "elaspedTime = " + elaspedTime);
+	        			Log.d(TAG, "lastRemainingTime = " + lastRemainingTime);
 	        				
-	        				if(numOfHearts + (remainingTime+elaspedTime)/HEART_GENERATION_MILLI >=5 ){
-	        					numOfHearts = MAX_HEART;
-	        					mSPEditorNumOfHearts.putInt(HEART, numOfHearts);
-	        		        	mSPEditorNumOfHearts.commit();
-	        		        	doneFromTimer = false;
-	        		        	continue;
-	        				}else{
-	        					numOfHearts += (remainingTime+elaspedTime)/HEART_GENERATION_MILLI;
-	        					mSPEditorNumOfHearts.putInt(HEART, numOfHearts);
-	        		        	mSPEditorNumOfHearts.commit();
-	        		        	remainingSec = HEART_GENERATION_MILLI - (remainingTime+elaspedTime) % HEART_GENERATION_MILLI;
-	        				}
+	        			if(numOfHearts + elaspedTimeSinceLastHeartIncreased / HEART_GENERATION_SEC >= MAX_HEART ){
+	        				numOfHearts = MAX_HEART;
+	        				mSPEditorNumOfHearts.putInt(HEART, numOfHearts);
+	        		       	mSPEditorNumOfHearts.commit();
+	        		       	doneFromTimer = true;
+	        		       	continue;
+	        			}else{
+	        				numOfHearts += elaspedTimeSinceLastHeartIncreased / HEART_GENERATION_SEC;
+	        				mSPEditorNumOfHearts.putInt(HEART, numOfHearts);
+	        		       	mSPEditorNumOfHearts.commit();
+	        		       	remainingSec = HEART_GENERATION_SEC - elaspedTimeSinceLastHeartIncreased % HEART_GENERATION_SEC;
 	        			}
+	        		}
         				
-        				mMyHandler.sendMessage(mMyHandler.obtainMessage());
-        				doneFromTimer = false;
-        			}
+        			mMyHandler.sendMessage(mMyHandler.obtainMessage());
+        			doneFromTimer = false;
+        			
         		}
         	} 
         }
@@ -178,6 +181,9 @@ public class RankingFragment extends Fragment {
 
 	
 	class HeartTimer extends CountDownTimer{		
+		SimpleDateFormat formatter = new SimpleDateFormat("mm:ss");
+		String dateFormatted = null;
+		
 		public HeartTimer(long millisInFuture, long countDownInterval) {
 			super(millisInFuture, countDownInterval);
 		}
@@ -185,40 +191,36 @@ public class RankingFragment extends Fragment {
 		@Override
 		public void onFinish() {        	
         	if(DEBUG) Log.d(TAG, "Class HeartTimer, onFinish()");
-			int numOfHearts = mSPNumOfHearts.getInt(HEART, MAX_HEART);
+			numOfHearts = mSPNumOfHearts.getInt(HEART, MAX_HEART);
         	      	
         	numOfHearts++;
-        	numberOfHearts = numOfHearts;
         	mSPEditorNumOfHearts.putInt(HEART, numOfHearts);
         	mSPEditorNumOfHearts.commit();
         	setHeartImage(numOfHearts);
         	
-			mSPEditorLastHeartTime.putLong(TIME, System.currentTimeMillis());
+			mSPEditorLastHeartTime.putLong(LH_TIME, System.currentTimeMillis());
 			mSPEditorLastHeartTime.commit();
         	
-			// kakpple test
-//			long now = mSPLastHeartTime.getLong(TIME, 0);
-//        	Log.d(TAG, "HeartTimer onFinish() millis =" + now);
-        	
+			mSPEditorRemainingTime.putLong(RE_TIME, HEART_GENERATION_SEC * THOUSAND_MILLI);
+			mSPEditorRemainingTime.commit(); 
+			
         	if(numOfHearts >= MAX_HEART){
         		mTextViewTimer.setText("MAX");
         	}
         	
         	doneFromTimer = true;
 		}
-
+		
 		@Override
-		public void onTick(long millisUntilFinished) {
-			SimpleDateFormat formatter = new SimpleDateFormat("mm:ss");
-        	String dateFormatted = formatter.format(millisUntilFinished);            	
+		public void onTick(long millisUntilFinished) {			
+        	dateFormatted = formatter.format(millisUntilFinished);            	
         	mTextViewTimer.setText("" + dateFormatted);
         	
-        	mSPEditorLastHeartTime.putLong(TIME, System.currentTimeMillis());
+        	mSPEditorLastHeartTime.putLong(LH_TIME, System.currentTimeMillis());
 			mSPEditorLastHeartTime.commit();
         	
-			mSPEditorRemainingTime.putLong(TIME, millisUntilFinished);
-			mSPEditorRemainingTime.commit();
-        	
+			mSPEditorRemainingTime.putLong(RE_TIME, millisUntilFinished);
+			mSPEditorRemainingTime.commit();        	
 		}
 	}
 		
@@ -227,7 +229,7 @@ public class RankingFragment extends Fragment {
 		@Override
 		public void handleMessage(Message msg){	
 			if(DEBUG) Log.d(TAG, "class MyHandler, handleMessage()");
-			new HeartTimer(remainingSec, THOUSAND_MILLI).start();
+			new HeartTimer(remainingSec * THOUSAND_MILLI, THOUSAND_MILLI).start();
 		}
 	}
 	
